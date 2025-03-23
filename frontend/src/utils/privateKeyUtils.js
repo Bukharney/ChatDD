@@ -1,85 +1,88 @@
-const deriveKey = async (password, salt) => {
-    const encoder = new TextEncoder();
-    const passwordBuffer = encoder.encode(password);
+// Function to encrypt the user's private key using a password
+export const encryptPrivateKey = async (privateKey, password) => {
+    const enc = new TextEncoder();
 
-    const keyMaterial = await crypto.subtle.importKey(
+    // Import the password as a key using PBKDF2
+    const passwordKey = await crypto.subtle.importKey(
         "raw", 
-        passwordBuffer, 
-        "PBKDF2", 
+        enc.encode(password),  // Convert password into bytes
+        { name: "PBKDF2" },     // Use PBKDF2 for key derivation
         false, 
         ["deriveKey"]
     );
 
+    // Generate a random Salt for key derivation
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+
+    // Derive the encryption key using PBKDF2 with the password key and salt
     const derivedKey = await crypto.subtle.deriveKey(
         {
             name: "PBKDF2",
-            salt: salt,
-            iterations: 100000, // จำนวนการทำ iterations
-            hash: "SHA-256" // ใช้ SHA-256 สำหรับการแฮช
+            salt: salt,  
+            iterations: 100000,  
+            hash: "SHA-256" 
         },
-        keyMaterial,
-        { name: "AES-GCM", length: 256 }, // สร้าง AES-GCM key ขนาด 256 บิต
+        passwordKey,
+        { name: "AES-GCM", length: 256 },  // The derived key will be used for AES-GCM encryption
         false,
-        ["encrypt", "decrypt"] // ใช้ในการเข้ารหัสและถอดรหัส
+        ["encrypt"]  // The key will only be used for encryption
     );
 
-    return { derivedKey };
-};
+    // Export the private key in JWK format
+    const privateKeyBuffer = await crypto.subtle.exportKey("jwk", privateKey);
 
-// ฟังก์ชันสำหรับเข้ารหัส private key ด้วย AES-GCM
-export const encryptPrivateKey = async (privateKey, password) => {
-    const salt = crypto.getRandomValues(new Uint8Array(16)); // สร้าง salt ขนาด 16 bytes
-    const iv = crypto.getRandomValues(new Uint8Array(12)); // สร้าง IV ขนาด 12 bytes
-
-    const { derivedKey } = await deriveKey(password, salt); // สร้าง key จาก password และ salt
-
-    // แปลง private key เป็น ArrayBuffer
-    const privateKeyBuffer = await crypto.subtle.exportKey("pkcs8", privateKey);
-
-    // เข้ารหัส private key ด้วย AES-GCM
+    // Encrypt the private key using AES-GCM with the derived key and salt as IV
     const encryptedPrivateKey = await crypto.subtle.encrypt(
-        { name: "AES-GCM", iv: iv },
+        { name: "AES-GCM", iv: salt },  
         derivedKey,
-        privateKeyBuffer
+        new TextEncoder().encode(JSON.stringify(privateKeyBuffer))  // Convert private key to string for encryption
     );
 
-    return { encryptedPrivateKey, salt, iv }; // ส่งคืนข้อมูลที่ถูกเข้ารหัส, salt และ iv
+    // Return the encrypted private key and salt
+    return { encryptedPrivateKey: new Uint8Array(encryptedPrivateKey), salt };
 };
 
-export const decryptPrivateKey = async (encryptedPrivateKey, password, salt, iv) => {
-    if (salt.length !== 16) {
-        throw new Error("Salt must be 16 bytes for PBKDF2.");
-    }
-    if (iv.length !== 12) {
-        throw new Error("IV must be 12 bytes for AES-GCM.");
-    }
+// Function to decrypt the user's private key using the password
+export const decryptPrivateKey = async (encryptedPrivateKey, salt, password) => {
+    const enc = new TextEncoder();
 
-    try {
-        const { derivedKey } = await deriveKey(password, salt);  // สร้าง key จาก password และ salt
+    // Import the password as a key using PBKDF2
+    const passwordKey = await crypto.subtle.importKey(
+        "raw", 
+        enc.encode(password),  
+        { name: "PBKDF2" },  
+        false, 
+        ["deriveKey"]
+    );
 
-        // ถอดรหัส private key ด้วย AES-GCM
-        const decryptedPrivateKeyBuffer = await crypto.subtle.decrypt(
-            { name: "AES-GCM", iv: iv },
-            derivedKey,
-            encryptedPrivateKey
-        );
+    // Derive the decryption key using PBKDF2 with the password key and salt
+    const derivedKey = await crypto.subtle.deriveKey(
+        {
+            name: "PBKDF2",
+            salt: salt,  
+            iterations: 100000,  
+            hash: "SHA-256"  
+        },
+        passwordKey,
+        { name: "AES-GCM", length: 256 },  
+        false,
+        ["decrypt"]  
+    );
 
-        // แปลงข้อมูลกลับเป็น private key
-        const privateKey = await crypto.subtle.importKey(
-            "pkcs8",  // ค่าที่ใช้ในการ import private key
-            decryptedPrivateKeyBuffer,  // ข้อมูลที่ถูกถอดรหัส
-            { 
-                name: "RSA-OAEP",  // ใช้ RSA-OAEP สำหรับการเข้ารหัสและถอดรหัส
-                hash: "SHA-256"    // ต้องระบุ hash เพื่อให้การนำเข้า key ถูกต้อง
-            },
-            true,
-            ["decrypt"]  // private key ใช้ในการถอดรหัส
-        );
+    // Decrypt the private key using AES-GCM with the derived key and salt as IV
+    const decryptedPrivateKey = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: salt },  
+        derivedKey,
+        encryptedPrivateKey  
+    );
 
-        return privateKey;
-    } catch (error) {
-        console.error("Decryption failed:", error);
-        throw new Error("Decryption failed: " + error.message);
-    }
+    // Parse the decrypted private key and import it back as an ECDH key
+    const privateKeyBuffer = JSON.parse(new TextDecoder().decode(decryptedPrivateKey));
+    return await crypto.subtle.importKey(
+        "jwk", 
+        privateKeyBuffer,  // The decrypted private key in JWK format
+        { name: "ECDH", namedCurve: "P-256" },  // Use ECDH algorithm with P-256 curve
+        true,  // The key is extractable
+        ["deriveKey", "deriveBits"]  // The key will be used for key derivation and bit derivation
+    );
 };
-

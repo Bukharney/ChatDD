@@ -1,14 +1,12 @@
+// Function to generate an ECDH Key Pair
 export const generateKeyPair = async () => {
     const keyPair = await crypto.subtle.generateKey(
         {
-            name: "RSA-OAEP",
-            modulusLength: 2048,  // ขนาดของ modulus
-            publicExponent: new Uint8Array([1, 0, 1]),  // ค่า public exponent (65537)
-            hash: "SHA-256",  // ใช้ SHA-256 สำหรับการแฮช
+            name: "ECDH",  // The name of the algorithm (Elliptic Curve Diffie-Hellman)
+            namedCurve: "P-256",  // Use the P-256 elliptic curve
         },
-        true,  // กำหนดว่า key สามารถใช้ได้ทั้งการเข้ารหัสและถอดรหัส
-        ["encrypt", "decrypt"]  // ใช้ในการเข้ารหัสและถอดรหัส
+        true,  // Indicates the key is extractable (can be exported)
+        ["deriveKey", "deriveBits"]  // The key can be used for key derivation and bit derivation
     );
-
-    return keyPair;
+    return keyPair;  
 };

@@ -1,12 +1,10 @@
 export const savePublicKey = async (publicKey) => {
-    // แปลง CryptoKey เป็น ArrayBuffer
+    // Convert from CryptoKey to ArrayBuffer
     const exportedKey = await window.crypto.subtle.exportKey("spki", publicKey);
 
-    // แปลง ArrayBuffer เป็น Base64
-   // const exportedKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(exportedKey)));
+    // Convert from ArrayBuffer to Base64
+    const exportedKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(exportedKey)));
 
-   const exportedKeyBase64 = exportedKey;
-    // เก็บใน IndexedDB
     return new Promise((resolve, reject) => {
         const request = indexedDB.open("E2EE_Chat_DB", 1);
 
@@ -28,7 +26,6 @@ export const savePublicKey = async (publicKey) => {
 };
 
 
-
 export const getPublicKey = async () => {
     return new Promise((resolve, reject) => {
         const request = indexedDB.open("E2EE_Chat_DB", 1);
@@ -42,10 +39,10 @@ export const getPublicKey = async () => {
             getRequest.onsuccess = async () => {
                 const exportedKeyBase64 = getRequest.result.key;
                 
-                // แปลงจาก Base64 กลับเป็น ArrayBuffer
+                // Convert from Base64 to ArrayBuffer
                 const exportedKey = new Uint8Array(atob(exportedKeyBase64).split("").map(c => c.charCodeAt(0)));
 
-                // แปลง ArrayBuffer กลับเป็น CryptoKey
+                // Convert from ArrayBuffer to CryptoKey
                 const publicKey = await window.crypto.subtle.importKey(
                     "spki", 
                     exportedKey, 

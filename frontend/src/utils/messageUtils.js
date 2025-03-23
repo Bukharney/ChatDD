@@ -1,45 +1,40 @@
-// ฟังก์ชันสำหรับเข้ารหัสข้อความ
-export const encryptMessage = async (message, publicKey) => {
-    // แปลงข้อความเป็น ArrayBuffer
-    const encoder = new TextEncoder();
-    const messageBuffer = encoder.encode(message);
+// Function to generate a shared secret key using ECDH (Elliptic Curve Diffie-Hellman) algorithm
+const generateSharedSecretKey = async (publicKey, privateKey) => {
+    const sharedSecret = await crypto.subtle.deriveKey(
+        { name: "ECDH", public: publicKey },  // Derive using ECDH and the public key
+        privateKey,  // Use the private key for the derivation
+        { name: "AES-GCM", length: 256 },  // Use AES-GCM for encryption
+        false,  // The key is not exportable
+        ["encrypt", "decrypt"]  // Allow encryption and decryption
+    );
 
-    try {
-        // ใช้ RSA-OAEP ในการเข้ารหัสข้อความ
-        const encryptedMessage = await crypto.subtle.encrypt(
-            {
-                name: "RSA-OAEP",
-            },
-            publicKey,  // public key ที่จะใช้ในการเข้ารหัส
-            messageBuffer  // ข้อความที่ต้องการเข้ารหัส
-        );
-
-        return new Uint8Array(encryptedMessage);  // ส่งคืนข้อความที่ถูกเข้ารหัส
-    } catch (error) {
-        console.error("Encryption failed:", error);
-        throw new Error("Encryption failed: " + error.message);
-    }
+    return sharedSecret;
 };
 
-// ฟังก์ชันสำหรับถอดรหัสข้อความ
-export const decryptMessage = async (encryptedMessage, privateKey) => {
-    try {
-        // ใช้ RSA-OAEP ในการถอดรหัสข้อความ
-        const decryptedMessageBuffer = await crypto.subtle.decrypt(
-            {
-                name: "RSA-OAEP",
-            },
-            privateKey,  // private key ที่จะใช้ในการถอดรหัส
-            encryptedMessage  // ข้อความที่ถูกเข้ารหัส
-        );
+// Function to encrypt a message using AES-GCM and the shared secret key
+export const encryptMessage = async (publicKey, privateKey, message) => {
+    const sharedSecretKey = await generateSharedSecretKey(publicKey, privateKey);
+    const iv = crypto.getRandomValues(new Uint8Array(12));  // Generate random IV
+    const encodedMessage = new TextEncoder().encode(message);  // Encode the message
 
-        // แปลงข้อมูลที่ถอดรหัสเป็นข้อความ (String)
-        const decoder = new TextDecoder();
-        const decryptedMessage = decoder.decode(decryptedMessageBuffer);
+    const encryptedMessage = await crypto.subtle.encrypt(
+        { name: "AES-GCM", iv: iv },  
+        sharedSecretKey,  
+        encodedMessage  
+    );
 
-        return decryptedMessage;  // ส่งคืนข้อความที่ถูกถอดรหัส
-    } catch (error) {
-        console.error("Decryption failed:", error);
-        throw new Error("Decryption failed: " + error.message);
-    }
+    return { encryptedMessage, iv };  
+};
+
+// Function to decrypt a message using AES-GCM and the shared secret key
+export const decryptMessage = async (publicKey, privateKey, encryptedMessage, iv) => {
+    const sharedSecretKey = await generateSharedSecretKey(publicKey, privateKey);
+
+    const decryptedMessage = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: iv },  
+        sharedSecretKey,  
+        encryptedMessage  
+    );
+
+    return new TextDecoder().decode(decryptedMessage); 
 };
