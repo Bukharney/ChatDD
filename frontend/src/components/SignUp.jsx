@@ -15,28 +15,27 @@ const SignUp = () => {
             return;
         }
 
-        // Step 1: Generate Key Pair (Public and Private Keys)
+        // Generate Key Pair (Public and Private Keys)
         try {
             const keyPair = await generateKeyPair();
             const { publicKey, privateKey } = keyPair;
+
             console.log("Password:", password);
-
-
             console.log("Public Key:", publicKey);
             console.log("Private Key:", privateKey);
 
-            // Step 2: Encrypt Private Key with Password
-            const { encryptedPrivateKey, salt, iv } = await encryptPrivateKey(privateKey, password);
+            // Encrypt Private Key with Password
+            const { encryptedPrivateKey, salt } = await encryptPrivateKey(privateKey, password);
+
             console.log("Encrypted Private Key:", encryptedPrivateKey);
             console.log("Salt:", salt);
 
-            // Save Public Key to IndexedDB
+            // Save Public Key to server database
             await savePublicKey(publicKey);
 
-            // Step 3: Save the encrypted private key in browser storage
-            await saveEncryptedPrivateKey(encryptedPrivateKey, salt, iv);
+            // Save the encrypted private key in browser storage
+            await saveEncryptedPrivateKey(encryptedPrivateKey, salt);
 
-            // Step 4: Send Public Key to Server (save it in the database)
             alert("Sign Up successful! You can now log in.");
 
         } catch (error) {

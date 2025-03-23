@@ -14,11 +14,8 @@ const Login = () => {
             return;
         }
     
-        // Step 1: Get Encrypted Private Key from Browser Storage
-        const encryptedPrivateKeyObject = await getEncryptedPrivateKey();
-        const encryptedPrivateKey = encryptedPrivateKeyObject.encryptedPrivateKey;
-        const salt = encryptedPrivateKeyObject.salt;
-        const iv = encryptedPrivateKeyObject.iv;
+        // Get Encrypted Private Key from Browser Storage
+        const { encryptedPrivateKey, salt } = await getEncryptedPrivateKey();
     
         console.log("encryptedPrivateKey:", encryptedPrivateKey);
         console.log("password:", password);
@@ -29,9 +26,9 @@ const Login = () => {
             return;
         }
     
-        // Step 2: Decrypt Private Key using Password
+        // Decrypt Private Key using Password
         try {
-            const privateKey = await decryptPrivateKey(encryptedPrivateKey, password, salt, iv);
+            const privateKey = await decryptPrivateKey(encryptedPrivateKey, salt, password);
 
             console.log("privateKey:", privateKey);
     
