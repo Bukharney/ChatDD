@@ -1,12 +1,12 @@
 import React from "react";
-import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate, Outlet } from "react-router-dom";
 import Logo from "../../assets/Logo";
 import ProfileIcon from "../../assets/Profile";
 import ChatIcon from "../../assets/Chat";
 import LogoutIcon from "../../assets/Logout";
 import Arrow from "../../assets/Arrow";
 
-const Layout = ({ children }) => {
+const Layout = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -34,6 +34,8 @@ const Layout = ({ children }) => {
         return "Chat";
       case "/logout":
         return "Logout";
+      case "/register":
+        return "Register";
       default:
         return "Home";
     }
@@ -57,8 +59,8 @@ const Layout = ({ children }) => {
           </ul>
         </nav>
       </aside>
-      <div className=" w-full h-full ">
-        <nav className="py-4 lg:py-6 px-6 border-b border-dark-gray ">
+      <div className="flex-1 h-screen overflow-hidden flex flex-col">
+        <nav className="py-4 lg:py-6 px-6 border-b border-dark-gray">
           <div className="flex flex-row gap-3 items-center">
             <button onClick={() => navigate(-1)}>
               <Arrow className="w-4 h-4 text-dark-gray" />
@@ -66,8 +68,8 @@ const Layout = ({ children }) => {
             <h1 className="text-white text-lg lg:text-xl font-medium">{getTitle()}</h1>
           </div>
         </nav>
-        <div className="p-6 lg:p-8">
-          <main>{children}</main>
+        <div className="flex-1 overflow-hidden">
+          <main className="h-full"><Outlet /></main>
         </div>
       </div>
     </div>
