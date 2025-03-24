@@ -46,7 +46,7 @@ const Layout = ({ children }) => {
           <ul className="h-full flex flex-col items-center px-3 lg:px-4 gap-4">
             <li className="w-full flex items-center justify-center mb-12">
               <NavLink to="/">
-                <Logo className="w-8 h-8" />
+                <Logo className="w-10 h-10" />
               </NavLink>
             </li>
             {renderNavLink("/profile", ProfileIcon)}
