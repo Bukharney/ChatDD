@@ -2,6 +2,7 @@ import React from "react";
 
 const Profile = ({ className }) => (
   <svg
+    className={className}
     width="20"
     height="26"
     viewBox="0 0 20 26"

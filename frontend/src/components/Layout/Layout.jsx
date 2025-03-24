@@ -16,8 +16,8 @@ const Layout = ({ children }) => {
         <li
           className={
             isActive
-              ? "w-12 h-12 bg-dark-gray rounded-lg flex items-center justify-center p-1"
-              : "w-12 h-12 flex items-center justify-center p-1"
+              ? "w-10 h-10 bg-dark-gray rounded-lg flex items-center justify-center p-1"
+              : "w-10 h-10 flex items-center justify-center p-1"
           }
         >
           <IconComponent />
@@ -40,33 +40,33 @@ const Layout = ({ children }) => {
   };
 
   return (
-    <div className="flex flex-row bg-black max-h-screen max-w-screen">
+    <div className="flex flex-row bg-[#000000] max-h-screen max-w-screen">
       <aside className="h-screen">
         <nav className="flex flex-col justify-between h-full gap-6 py-6 border-r border-dark-gray">
           <ul className="h-full flex flex-col items-center px-3 lg:px-4 gap-4">
             <li className="w-full flex items-center justify-center mb-12">
               <NavLink to="/">
-                <Logo className="w-8 h-8" />
+                <Logo className="w-10 h-10" />
               </NavLink>
             </li>
             {renderNavLink("/profile", ProfileIcon)}
             {renderNavLink("/chat", ChatIcon)}
           </ul>
-          <ul className="w-full flex items-center justify-center">
+          <ul className="w-full flex items-center justify-center mb-1 lg:mb-4">
             {renderNavLink("/logout", LogoutIcon)}
           </ul>
         </nav>
       </aside>
-      <div className=" w-full h-full ">
+      <div className=" w-screen h-screen flex flex-col overflow-scroll  scrollbar-hide ">
         <nav className="py-4 lg:py-6 px-6 border-b border-dark-gray ">
           <div className="flex flex-row gap-3 items-center">
             <button onClick={() => navigate(-1)}>
-              <Arrow className="w-4 h-4 text-dark-gray" />
+              <Arrow className="w-8 h-8 text-dark-gray" />
             </button>
-            <h1 className="text-white text-lg lg:text-xl font-medium">{getTitle()}</h1>
+            <h1 className="text-white text-base lg:text-lg font-medium">{getTitle()}</h1>
           </div>
         </nav>
-        <div className="p-6 lg:p-8">
+        <div className="h-full w-full">
           <main>{children}</main>
         </div>
       </div>
