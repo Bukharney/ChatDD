@@ -302,7 +302,7 @@ const ChatBox = () => {
 
           {/* Message Input */}
           <div className="flex-none py-3 px-2 sm:px-3">
-            <div className="flex items-center bg-dark-gray rounded-md px-2 sm:px-4 py-2.5 h-12">
+            <div className="flex items-center bg-dark-gray rounded-xl px-2 sm:px-4 py-2.5 h-12">
               {/* Input with appropriate height */}
               <input
                 type="text"
