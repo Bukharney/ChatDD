@@ -71,17 +71,19 @@ const ChatBox = () => {
               className="w-10 h-10 rounded-full"
             />
             <div className="flex flex-col">
-              <h2 className="text-white text-sm lg:text-base text-medium">Chatbot</h2>
+              <h2 className="text-white text-sm lg:text-base text-medium">
+                Chatbot
+              </h2>
               <p className="text-gray  text-2xs lg:text-xs">Online</p>
             </div>
           </div>
           <button className=" rounded-lg p-1 flex items-center justify-center border-[1px] border-dark-gray">
-            < Search className="cursor-pointer w-6 h-6" />
+            <Search className="cursor-pointer w-6 h-6" />
           </button>
         </div>
       </div>
       <div className="p-4 lg:p-6 text-xs lg:text-sm">
-        <div className="flex-1 max-h-[calc(100vh-14.75rem)] min-h-[calc(100vh-14.75rem)] lg:max-h-[calc(100vh-17.25rem)] lg:min-h-[calc(100vh-17.25rem)] overflow-y-auto scrollbar-hide flex flex-col">
+        <div className="flex-1 max-h-[calc(100vh-14.75rem)] min-h-[calc(100vh-14.75rem)] lg:max-h-[calc(100vh-17rem)] lg:min-h-[calc(100vh-17rem)] overflow-y-auto scrollbar-hide flex flex-col">
           {Object.keys(groupedMessages).map((date, dateIndex) => (
             <div key={dateIndex} className="flex flex-col mb-4">
               <div className="text-center text-gray mb-4 text-2xs lg:text-xs">
@@ -121,7 +123,7 @@ const ChatBox = () => {
           <div ref={bottomRef} />
         </div>
 
-        <div className="p-2 bg-black rounded-xl flex flex-row gap-3 mt-4 items-center h-full">
+        <div className="p-2 bg-black rounded-xl flex flex-row gap-3 mt-4 items-center ">
           <input
             type="text"
             className="w-full p-3 bg-black border-none outline-none rounded-xl text-white placeholder-gray "
