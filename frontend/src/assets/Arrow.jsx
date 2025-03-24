@@ -2,6 +2,7 @@ import React from "react";
 
 const Arrow = ({ className }) => (
   <svg
+    className={className}
     width="30"
     height="30"
     viewBox="0 0 30 30"

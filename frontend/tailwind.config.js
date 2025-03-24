@@ -1,4 +1,3 @@
-// filepath: d:\ChatDD\frontend\tailwind.config.js
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -16,6 +15,9 @@ module.exports = {
         'black': '#0A0A0A',
         'dark-gray': '#1E1E1E',
         'gray': '#929292',
+      },
+      fontSize: {
+        '2xs': '0.625rem', 
       },
     },
   },

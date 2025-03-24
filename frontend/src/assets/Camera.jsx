@@ -2,6 +2,7 @@ import React from "react";
 
 const Camera = ({ className }) => (
   <svg
+    className={className}
     width="24"
     height="24"
     viewBox="0 0 24 24"

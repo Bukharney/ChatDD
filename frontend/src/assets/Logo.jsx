@@ -1,5 +1,4 @@
-// filepath: d:\ChatDD\frontend\src\assets\Logo.jsx
-import React from 'react';
+import React from "react";
 
 const Logo = ({ className }) => (
   <svg

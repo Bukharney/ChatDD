@@ -2,6 +2,7 @@ import React from "react";
 
 const Logout = ({ className }) => (
   <svg
+  className={className}
     width="36"
     height="36"
     viewBox="0 0 36 36"
