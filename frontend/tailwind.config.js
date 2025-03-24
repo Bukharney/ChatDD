@@ -7,9 +7,9 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'blue-dark': '#54F4FC',
-        'blue-darker': '#0C2325',
-        'blue-darkest': '#03101B',
+        'blue-light': '#54F4FC',
+        'blue-dark': '#0C2325',
+        'blue-darker': '#03101B',
         'blue': '#1A70B5',
         'green': '#4CCD99',
         'yellow': '#FFF455',
@@ -19,5 +19,16 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function ({ addUtilities }) {
+      addUtilities({
+        '.scrollbar-hide': {
+          'scrollbar-width': 'none',
+          '&::-webkit-scrollbar': {
+            display: 'none',
+          },
+        },
+      });
+    },
+  ],
 };

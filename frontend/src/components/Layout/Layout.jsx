@@ -40,7 +40,7 @@ const Layout = ({ children }) => {
   };
 
   return (
-    <div className="flex flex-row bg-black max-h-screen max-w-screen">
+    <div className="flex flex-row bg-[#000000] max-h-screen max-w-screen">
       <aside className="h-screen">
         <nav className="flex flex-col justify-between h-full gap-6 py-6 border-r border-dark-gray">
           <ul className="h-full flex flex-col items-center px-3 lg:px-4 gap-4">
@@ -57,7 +57,7 @@ const Layout = ({ children }) => {
           </ul>
         </nav>
       </aside>
-      <div className=" w-full h-full ">
+      <div className=" w-screen h-screen flex flex-col overflow-scroll  scrollbar-hide ">
         <nav className="py-4 lg:py-6 px-6 border-b border-dark-gray ">
           <div className="flex flex-row gap-3 items-center">
             <button onClick={() => navigate(-1)}>
@@ -66,7 +66,7 @@ const Layout = ({ children }) => {
             <h1 className="text-white text-lg lg:text-xl font-medium">{getTitle()}</h1>
           </div>
         </nav>
-        <div className="p-6 lg:p-8">
+        <div className="p-6 lg:p-8 h-full w-full">
           <main>{children}</main>
         </div>
       </div>
