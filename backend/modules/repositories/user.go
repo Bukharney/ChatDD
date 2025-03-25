@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"context"
-	"log"
 
 	"github.com/bukharney/ChatDD/modules/entities"
 	"github.com/bukharney/ChatDD/utils"
@@ -35,7 +34,7 @@ func (r *UserRepo) Register(ctx context.Context, req *entities.UsersRegisterReq)
 
 func (r *UserRepo) ChangePassword(ctx context.Context, req *entities.UsersChangePasswordReq) (*entities.UsersChangedRes, error) {
 	err := r.Db.QueryRow(
-		context.Background(),
+		ctx,
 		"UPDATE users SET password = $1 WHERE email = $2",
 		req.NewPassword, req.Username,
 	).Scan()
@@ -44,17 +43,16 @@ func (r *UserRepo) ChangePassword(ctx context.Context, req *entities.UsersChange
 			Success: false,
 		}, utils.HandlePostgreSQLError(err)
 	}
+
 	return &entities.UsersChangedRes{
 		Success: true,
 	}, nil
 }
 
-func (r *UserRepo) GetUserByEmail(email string) (*entities.UsersPassport, error) {
-	log.Println("GetUserByEmail")
-	log.Println(email)
+func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (*entities.UsersPassport, error) {
 	var user entities.UsersPassport
 	err := r.Db.QueryRow(
-		context.Background(),
+		ctx,
 		"SELECT id, username, password, email FROM users WHERE email = $1",
 		email,
 	).Scan(&user.Id, &user.Username, &user.Password, &user.Email)
@@ -66,30 +64,70 @@ func (r *UserRepo) GetUserByEmail(email string) (*entities.UsersPassport, error)
 	return &user, nil
 }
 
-func (r *UserRepo) DeleteAccount(user_id uuid.UUID) (*entities.UsersChangedRes, error) {
-	return nil, nil
+func (r *UserRepo) DeleteAccount(ctx context.Context, user_id uuid.UUID) (*entities.UsersChangedRes, error) {
+	err := r.Db.QueryRow(
+		ctx,
+		"DELETE FROM users WHERE id = $1",
+		user_id,
+	).Scan()
+	if err != nil {
+		return &entities.UsersChangedRes{
+			Success: false,
+		}, utils.HandlePostgreSQLError(err)
+	}
+
+	return &entities.UsersChangedRes{
+		Success: true,
+	}, nil
 }
 
-func (r *UserRepo) AddFriend(req *entities.FriendReq) (*entities.FriendRes, error) {
-	return nil, nil
+func (r *UserRepo) AddFriend(ctx context.Context, req *entities.FriendReq) error {
+	_, err := r.Db.Exec(
+		ctx,
+		"INSERT INTO friends (user_a_id, user_b_id) VALUES ($1, $2)",
+		req.UserId, req.FriendId,
+	)
+
+	if err != nil {
+		return utils.HandlePostgreSQLError(err)
+	}
+
+	return nil
 }
 
-func (r *UserRepo) AcceptFriendReq(user_id uuid.UUID, friend_id uuid.UUID, room_id int) (*entities.FriendRes, error) {
-	return nil, nil
-}
+func (r *UserRepo) GetFriends(ctx context.Context, user_id uuid.UUID) ([]entities.FriendInfoRes, error) {
+	var res []entities.FriendInfoRes
+	rows, err := r.Db.Query(
+		ctx,
+		`SELECT 
+			CASE 
+				WHEN user_a_id = $1 THEN user_b_id
+				WHEN user_b_id = $1 THEN user_a_id
+			END as friend_id,
+			u.username, u.email
+		FROM friends f
+		JOIN users u ON (u.id = CASE 
+			WHEN user_a_id = $1 THEN user_b_id
+			WHEN user_b_id = $1 THEN user_a_id
+		END)
+		WHERE user_a_id = $1 OR user_b_id = $1`,
+		user_id,
+	)
+	if err != nil {
+		return nil, utils.HandlePostgreSQLError(err)
+	}
+	defer rows.Close()
 
-func (r *UserRepo) RejectFriend(user_id uuid.UUID, friend_id uuid.UUID) (*entities.UsersChangedRes, error) {
-	return nil, nil
-}
+	// Iterate through the rows and collect friend info
+	for rows.Next() {
+		var friend entities.FriendInfoRes
+		err = rows.Scan(&friend.Id, &friend.Username, &friend.Email)
+		if err != nil {
+			return nil, utils.HandlePostgreSQLError(err)
+		}
 
-func (r *UserRepo) GetFriendsReq(user_id uuid.UUID) ([]entities.FriendInfoRes, error) {
-	return nil, nil
-}
+		res = append(res, friend)
+	}
 
-func (r *UserRepo) GetFriendReq(user_id uuid.UUID, friend_id uuid.UUID) (*entities.FriendRes, error) {
-	return nil, nil
-}
-
-func (r *UserRepo) GetFriends(user_id uuid.UUID) ([]entities.FriendInfoRes, error) {
-	return nil, nil
+	return res, nil
 }

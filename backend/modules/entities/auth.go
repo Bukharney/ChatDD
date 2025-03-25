@@ -12,6 +12,8 @@ type AuthRepository interface {
 }
 
 type AuthUsecase interface {
-	Login(cfg *configs.Configs, ctx context.Context, req *UsersCredentials) (*UsersLoginRes, error)
+	Login(cfg *configs.Configs, ctx context.Context, req *UsersCredentials) (*Token, error)
+	Logout(ctx context.Context, claims UsersClaims) error
 	RefreshToken(ctx context.Context, claims UsersClaims) (*string, error)
+	Me(ctx context.Context, claims UsersClaims) (*UsersDataRes, error)
 }
