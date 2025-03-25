@@ -10,25 +10,20 @@ import (
 type UsersUsecase interface {
 	Register(ctx context.Context, req *UsersRegisterReq) (*UsersRegisterRes, error)
 	ChangePassword(ctx context.Context, req *UsersChangePasswordReq) (*UsersChangedRes, error)
-	GetUserDetails(user UsersClaims) (*UsersDataRes, error)
-	DeleteAccount(user UsersClaims) (*UsersChangedRes, error)
-	AddFriend(req *FriendReq) (*FriendRes, error)
-	GetFriendsReq(userId uuid.UUID) ([]FriendInfoRes, error)
-	GetFriends(userId uuid.UUID) ([]FriendInfoRes, error)
-	RejectFriend(userId uuid.UUID, FriendUsername string) (*UsersChangedRes, error)
+	GetUserDetails(ctx context.Context, user UsersClaims) (*UsersDataRes, error)
+	GetUserByEmail(ctx context.Context, email string) (*UsersDataRes, error)
+	DeleteAccount(ctx context.Context, user UsersClaims) (*UsersChangedRes, error)
+	AddFriend(ctx context.Context, req *FriendReq) (*FriendRes, error)
+	GetFriends(ctx context.Context, userId uuid.UUID) ([]FriendInfoRes, error)
 }
 
 type UsersRepository interface {
 	Register(ctx context.Context, req *UsersRegisterReq) (*UsersRegisterRes, error)
-	GetUserByEmail(email string) (*UsersPassport, error)
+	GetUserByEmail(ctx context.Context, email string) (*UsersPassport, error)
 	ChangePassword(ctx context.Context, req *UsersChangePasswordReq) (*UsersChangedRes, error)
-	DeleteAccount(user_id uuid.UUID) (*UsersChangedRes, error)
-	AddFriend(req *FriendReq) (*FriendRes, error)
-	GetFriendsReq(user_id uuid.UUID) ([]FriendInfoRes, error)
-	GetFriendReq(user_id uuid.UUID, friend_id uuid.UUID) (*FriendRes, error)
-	GetFriends(user_id uuid.UUID) ([]FriendInfoRes, error)
-	AcceptFriendReq(user_id uuid.UUID, friend_id uuid.UUID, room_id int) (*FriendRes, error)
-	RejectFriend(user_id uuid.UUID, friend_id uuid.UUID) (*UsersChangedRes, error)
+	DeleteAccount(ctx context.Context, user_id uuid.UUID) (*UsersChangedRes, error)
+	AddFriend(ctx context.Context, req *FriendReq) error
+	GetFriends(ctx context.Context, user_id uuid.UUID) ([]FriendInfoRes, error)
 }
 
 type UsersCredentials struct {
@@ -44,10 +39,9 @@ type UsersPassport struct {
 }
 
 type UsersDataRes struct {
-	Id          uuid.UUID `json:"id" db:"id"`
-	Username    string    `json:"username" db:"username"`
-	Email       string    `json:"email" db:"email"`
-	AccessToken string    `json:"token"`
+	Id       uuid.UUID `json:"id" db:"id"`
+	Username string    `json:"username" db:"username"`
+	Email    string    `json:"email" db:"email"`
 }
 
 type UsersClaims struct {
@@ -75,7 +69,7 @@ type UsersRegisterRes struct {
 	AccessToken string    `json:"token"`
 }
 
-type UsersLoginRes struct {
+type Token struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
 }
@@ -85,22 +79,23 @@ type UsersChangedRes struct {
 }
 
 type FriendReq struct {
-	UserId         uuid.UUID `json:"user_id"`
-	FriendId       uuid.UUID `json:"friend_id"`
-	FriendUsername string    `json:"username" binding:"required"`
-	Status         int       `json:"status"`
+	UserId   uuid.UUID `json:"user_a_id"`
+	FriendId uuid.UUID `json:"user_b_id"`
 }
 
 type FriendRes struct {
-	UserId   uuid.UUID `json:"user_id" db:"from_user_id"`
-	FriendId uuid.UUID `json:"friend_id" db:"to_user_id"`
-	Status   int       `json:"status" db:"status"`
-	Created  string    `json:"created_at" db:"created_at"`
+	Success bool `json:"success"`
 }
 
 type FriendInfoRes struct {
 	Id       uuid.UUID `json:"id"`
 	Username string    `json:"username"`
-	Status   int       `json:"status"`
+	Email    string    `json:"email"`
 	RoomId   int       `json:"room_id" db:"room_id"`
+}
+
+type UserInfo struct {
+	Id       uuid.UUID `json:"id"`
+	Username string    `json:"username"`
+	Email    string    `json:"email"`
 }

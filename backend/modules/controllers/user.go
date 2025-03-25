@@ -23,11 +23,10 @@ func NewUsersControllers(r gin.IRoutes, usersUsecase entities.UsersUsecase, auth
 	}
 
 	r.GET("/", middlewares.JwtAuthentication(middlewares.AccessToken), controllers.GetUserDetails)
-	r.GET("/friends-request", middlewares.JwtAuthentication(middlewares.AccessToken), controllers.GetFriendsReq)
 	r.GET("/friends", middlewares.JwtAuthentication(middlewares.AccessToken), controllers.GetFriends)
+	r.GET("/find", middlewares.JwtAuthentication(middlewares.AccessToken), controllers.FindUser)
 	r.POST("/", controllers.Register)
 	r.POST("/add-friend", middlewares.JwtAuthentication(middlewares.AccessToken), controllers.AddFriend)
-	r.POST("/reject-friend", middlewares.JwtAuthentication(middlewares.AccessToken), controllers.RejectFriend)
 	r.DELETE("/", middlewares.JwtAuthentication(middlewares.AccessToken), controllers.DeleteAccount)
 	r.PATCH("/", middlewares.JwtAuthentication(middlewares.AccessToken), controllers.ChangePassword)
 }
@@ -100,12 +99,28 @@ func (u *UsersController) ChangePassword(c *gin.Context) {
 }
 
 func (u *UsersController) GetUserDetails(c *gin.Context) {
+	ctx := c.Request.Context()
 	user, err := middlewares.GetUserByToken(c, middlewares.AccessToken)
 	if err != nil {
 		return
 	}
 
-	res, err := u.UsersUsecase.GetUserDetails(*user)
+	res, err := u.UsersUsecase.GetUserDetails(ctx, *user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, res)
+}
+
+func (u *UsersController) FindUser(c *gin.Context) {
+	ctx := c.Request.Context()
+	email := c.Query("email")
+
+	res, err := u.UsersUsecase.GetUserByEmail(ctx, email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -117,12 +132,13 @@ func (u *UsersController) GetUserDetails(c *gin.Context) {
 }
 
 func (u *UsersController) DeleteAccount(c *gin.Context) {
+	ctx := c.Request.Context()
 	user, err := middlewares.GetUserByToken(c, middlewares.AccessToken)
 	if err != nil {
 		return
 	}
 
-	res, err := u.UsersUsecase.DeleteAccount(*user)
+	res, err := u.UsersUsecase.DeleteAccount(ctx, *user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -134,6 +150,7 @@ func (u *UsersController) DeleteAccount(c *gin.Context) {
 }
 
 func (u *UsersController) AddFriend(c *gin.Context) {
+	ctx := c.Request.Context()
 	user, err := middlewares.GetUserByToken(c, middlewares.AccessToken)
 	if err != nil {
 		return
@@ -150,52 +167,7 @@ func (u *UsersController) AddFriend(c *gin.Context) {
 
 	req.UserId = user.Id
 
-	res, err := u.UsersUsecase.AddFriend(req)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, res)
-}
-
-func (u *UsersController) RejectFriend(c *gin.Context) {
-	user, err := middlewares.GetUserByToken(c, middlewares.AccessToken)
-	if err != nil {
-		return
-	}
-
-	req := new(entities.FriendReq)
-	err = c.ShouldBind(req)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	req.UserId = user.Id
-
-	res, err := u.UsersUsecase.RejectFriend(req.UserId, req.FriendUsername)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, res)
-}
-
-func (u *UsersController) GetFriendsReq(c *gin.Context) {
-	user, err := middlewares.GetUserByToken(c, middlewares.AccessToken)
-	if err != nil {
-		return
-	}
-
-	res, err := u.UsersUsecase.GetFriendsReq(user.Id)
+	res, err := u.UsersUsecase.AddFriend(ctx, req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -207,12 +179,13 @@ func (u *UsersController) GetFriendsReq(c *gin.Context) {
 }
 
 func (u *UsersController) GetFriends(c *gin.Context) {
+	ctx := c.Request.Context()
 	user, err := middlewares.GetUserByToken(c, middlewares.AccessToken)
 	if err != nil {
 		return
 	}
 
-	res, err := u.UsersUsecase.GetFriends(user.Id)
+	res, err := u.UsersUsecase.GetFriends(ctx, user.Id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),

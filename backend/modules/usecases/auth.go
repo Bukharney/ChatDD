@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/bukharney/ChatDD/configs"
@@ -33,8 +32,8 @@ func NewAuthUsecases(
 	}
 }
 
-func (a *AuthUsecases) Login(cfg *configs.Configs, ctx context.Context, req *entities.UsersCredentials) (*entities.UsersLoginRes, error) {
-	user, err := a.UserRepo.GetUserByEmail(req.Username)
+func (a *AuthUsecases) Login(cfg *configs.Configs, ctx context.Context, req *entities.UsersCredentials) (*entities.Token, error) {
+	user, err := a.UserRepo.GetUserByEmail(ctx, req.Username)
 	if err != nil {
 		return nil, errors.New("error, user not found")
 	}
@@ -60,7 +59,7 @@ func (a *AuthUsecases) Login(cfg *configs.Configs, ctx context.Context, req *ent
 		return nil, fmt.Errorf("error, failed to generate refresh token: %v", err)
 	}
 
-	res := &entities.UsersLoginRes{
+	res := &entities.Token{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}
@@ -69,7 +68,6 @@ func (a *AuthUsecases) Login(cfg *configs.Configs, ctx context.Context, req *ent
 }
 
 func (a *AuthUsecases) RefreshToken(ctx context.Context, claims entities.UsersClaims) (*string, error) {
-	log.Println(claims.ID)
 	session, err := a.SessionRepo.GetSession(ctx, claims.ID)
 	if err != nil {
 		return nil, errors.New("error, session not found")
@@ -80,23 +78,46 @@ func (a *AuthUsecases) RefreshToken(ctx context.Context, claims entities.UsersCl
 	}
 
 	if session.ExpiresAt.Before(time.Now()) {
+		err = a.SessionRepo.DeleteSession(ctx, claims.ID)
+		if err != nil {
+			return nil, errors.New("error, failed to delete session")
+		}
 		return nil, errors.New("error, refresh token expired")
 	}
 
-	user, err := a.UserRepo.GetUserByEmail(claims.Username)
+	user, err := a.UserRepo.GetUserByEmail(ctx, claims.Username)
 	if err != nil {
 		return nil, errors.New("error, user not found")
 	}
 
-	err = a.SessionRepo.DeleteSession(ctx, claims.ID)
+	accessToken, err := a.AuthRepo.GenerateAccessToken(user)
 	if err != nil {
-		return nil, errors.New("error, failed to delete session")
+		return nil, fmt.Errorf("error, failed to generate access token: %v", err)
 	}
 
-	refreshToken, err := a.AuthRepo.GenerateRefreshToken(ctx, user)
+	return &accessToken, nil
+}
+
+func (a *AuthUsecases) Logout(ctx context.Context, claims entities.UsersClaims) error {
+	err := a.SessionRepo.DeleteSession(ctx, claims.ID)
 	if err != nil {
-		return nil, fmt.Errorf("error, failed to generate refresh token: %v", err)
+		return errors.New("error, failed to delete session")
 	}
 
-	return &refreshToken, nil
+	return nil
+}
+
+func (a *AuthUsecases) Me(ctx context.Context, claims entities.UsersClaims) (*entities.UsersDataRes, error) {
+	user, err := a.UserRepo.GetUserByEmail(ctx, claims.Username)
+	if err != nil {
+		return nil, errors.New("error, user not found")
+	}
+
+	res := &entities.UsersDataRes{
+		Id:       user.Id,
+		Username: user.Username,
+		Email:    user.Email,
+	}
+
+	return res, nil
 }
