@@ -5,19 +5,27 @@ import { EyeOn, EyeOff } from "../assets/Visibility";
 import { LoginBG } from "../assets/LoginBG";
 import { decryptPrivateKey } from "../utils/privateKeyUtils";
 import { getEncryptedPrivateKey } from "../utils/storageUtils";
+import { loginUser } from "../api/api";
 
 const Login = () => {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [privateKey, setPrivateKey] = useState(null);
+  const [_, setPrivateKey] = useState(null);
 
   const handleLogin = async () => {
-    if (!username || !password) {
-      setErrorMessage("Please enter username and password.");
+    if (!email || !password) {
+      setErrorMessage("Please enter email and password.");
       return;
     }
+
+    await loginUser(
+      JSON.stringify({
+        username: email,
+        password: password,
+      })
+    );
 
     // Get Encrypted Private Key from Browser Storage
     const { encryptedPrivateKey, salt } = await getEncryptedPrivateKey();
@@ -72,21 +80,20 @@ const Login = () => {
         <div className="space-y-4">
           <div>
             <label
-              htmlFor="username"
+              htmlFor="email"
               className="block text-xs lg:text-sm font-medium text-white mb-1"
             >
-              Username
+              Email
             </label>
             <input
-              type="text"
-              id="username"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              type="email"
+              id="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-2 rounded-md bg-white border border-gray text-black focus:outline-none focus:ring-2 focus:ring-blue-light focus:border-transparent text-sm lg:text-base"
             />
           </div>
-
           <div>
             <label
               htmlFor="password"
