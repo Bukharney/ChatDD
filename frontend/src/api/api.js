@@ -4,7 +4,7 @@ const baseUrl = "https://chatdd.bukharney.site";
 
 const createUser = async (user) => {
   try {
-    const response = await axios.post(`${baseUrl}/v1/users`, user, {
+    const response = await axios.post(`${baseUrl}/v1/users/`, user, {
       headers: {
         "Content-Type": "application/json",
       },
@@ -18,7 +18,7 @@ const createUser = async (user) => {
 
 const loginUser = async (user) => {
   try {
-    const response = await axios.post(`${baseUrl}/v1/auth/login`, user, {
+    const response = await axios.post(`${baseUrl}/v1/auth/login/`, user, {
       headers: {
         "Content-Type": "application/json",
       },
