@@ -28,7 +28,7 @@ func NewServer(db *pgxpool.Pool, cfg *configs.Configs) *Server {
 func (s *Server) Run() error {
 	s.App.Use(cors.New(
 		cors.Config{
-			AllowOrigins:     []string{"http://localhost:5173"},
+			AllowOrigins:     []string{"http://localhost:5173", "https://chatdd.bukharney.site"},
 			AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 			AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 			AllowCredentials: true,
