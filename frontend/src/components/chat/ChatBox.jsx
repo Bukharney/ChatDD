@@ -1,25 +1,37 @@
 import React, { useState, useEffect, useRef } from "react";
-import chatMessages from "../../data/chatMessages.json";
+import { useLocation } from "react-router-dom";
+import chatData from "../../data/chatData.json";
 import Folder from "../../assets/Folder";
 import Camera from "../../assets/Camera";
 import Send from "../../assets/Send";
 import Search from "../../assets/Search";
 import SearchModal from "../modal/search";
 
-const ChatBox = () => {
+const ChatBox = ({ contact }) => {
   const [messages, setMessages] = useState([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const bottomRef = useRef(null);
+  const location = useLocation();
 
   useEffect(() => {
-    const sortedMessages = [...chatMessages].sort(
-      (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
-    );
-    setMessages(sortedMessages);
-  }, []);
+    const queryParams = new URLSearchParams(location.search);
+    const contactId = queryParams.get("id");
+    if (contactId) {
+      const contact = chatData.find((msg) => msg.id === parseInt(contactId));
+      if (contact) {
+        setMessages(contact.messages);
+      } else {
+        setMessages([]);
+      }
+    } else if (contact) {
+      setMessages(contact.messages);
+    } else {
+      setMessages([]);
+    }
+  }, [contact, location]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    bottomRef.current?.scrollIntoView({ behavior: "auto" });
   }, [messages]);
 
   const formatTimestamp = (timestamp, sender) => {
@@ -40,6 +52,13 @@ const ChatBox = () => {
       date.getFullYear() === today.getFullYear()
     ) {
       return "Today";
+    }
+    if (
+      date.getDate() === today.getDate() - 1 &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear()
+    ) {
+      return "Yesterday";
     }
     return date.toLocaleDateString([], {
       weekday: "long",
@@ -68,15 +87,15 @@ const ChatBox = () => {
         <div className="flex flex-row items-center justify-between py-3 px-4 lg:px-6 bg-black">
           <div className="flex flex-row items-center gap-2">
             <img
-              src="https://thumbs.dreamstime.com/b/arabic-business-man-traditional-muslim-hat-placeholder-102337208.jpg"
+              src={contact.avatar || "https://via.placeholder.com/150"}
               alt="User Avatar"
               className="w-10 h-10 rounded-full"
             />
             <div className="flex flex-col">
               <h2 className="text-white text-sm lg:text-base font-medium">
-                Chatbot
+                {contact.name}
               </h2>
-              <p className="text-gray  text-2xs lg:text-xs">Online</p>
+              <p className="text-gray text-2xs lg:text-xs">Online</p>
             </div>
           </div>
           <button

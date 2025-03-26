@@ -1,0 +1,115 @@
+[
+  {
+    "id": 1,
+    "name": "John Doe",
+    "avatar": "https://thumbs.dreamstime.com/b/arabic-business-man-traditional-muslim-hat-placeholder-102337208.jpg",
+    "timestamp": "2025-03-24T10:01:00Z",
+    "lastMessage": "Hey, how are you?",
+    "messages": [
+      {
+        "timestamp": "2025-03-24T09:00:00Z",
+        "text": "Hello!",
+        "sender": "user"
+      },
+      {
+        "timestamp": "2025-03-24T10:00:30Z",
+        "text": "Hi there!",
+        "sender": "assistant"
+      },
+      {
+        "timestamp": "2025-03-24T10:01:00Z",
+        "text": "How are you?",
+        "sender": "user"
+      },
+      {
+        "timestamp": "2025-03-24T10:01:30Z",
+        "text": "I'm good, thanks! How about you?",
+        "sender": "assistant"
+      },
+      {
+        "timestamp": "2025-03-24T10:02:00Z",
+        "text": "I'm also good, thanks!",
+        "sender": "user"
+      },
+      {
+        "timestamp": "2025-03-24T10:02:30Z",
+        "text": "What are you doing today?",
+        "sender": "user"
+      },
+      {
+        "timestamp": "2025-03-24T10:03:00Z",
+        "text": "I'm coding! What about you?",
+        "sender": "assistant"
+      },
+      {
+        "timestamp": "2025-03-24T10:03:30Z",
+        "text": "Same here, working on a chat application.",
+        "sender": "user"
+      },
+      {
+        "timestamp": "2025-03-25T10:00:00Z",
+        "text": "That's great!",
+        "sender": "assistant"
+      },
+      {
+        "timestamp": "2025-03-25T10:00:30Z",
+        "text": "Thanks! What are you coding?",
+        "sender": "user"
+      },
+      {
+        "timestamp": "2025-03-25T10:01:00Z",
+        "text": "I'm working on a new feature for our app.",
+        "sender": "assistant"
+      },
+      {
+        "timestamp": "2025-03-25T10:01:30Z",
+        "text": "That sounds interesting!",
+        "sender": "user"
+      },
+      {
+        "timestamp": "2025-03-25T10:02:00Z",
+        "text": "Yes, it is! What features are you implementing?",
+        "sender": "assistant"
+      },
+      {
+        "timestamp": "2025-03-25T10:02:30Z",
+        "text": "Real-time messaging and user authentication.",
+        "sender": "user"
+      },
+      {
+        "timestamp": "2025-03-25T10:03:00Z",
+        "text": "Nice! Good luck with that.",
+        "sender": "assistant"
+      },
+      {
+        "timestamp": "2025-03-25T10:40:30Z",
+        "text": "Thanks!",
+        "sender": "user"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Jane Smith",
+    "avatar": "https://thumbs.dreamstime.com/b/arabic-business-man-traditional-muslim-hat-placeholder-102337208.jpg",
+    "timestamp": "2025-03-24T10:01:00Z",
+    "lastMessage": "Let's catch up later.",
+    "messages": []
+  },
+  {
+    "id": 3,
+    "name": "Alice Johnson",
+    "avatar": "https://thumbs.dreamstime.com/b/arabic-business-man-traditional-muslim-hat-placeholder-102337208.jpg",
+    "timestamp": "2025-03-24T10:01:00Z",
+    "lastMessage": "Can you send me the report?",
+    "messages": []
+  },
+  {
+    "id": 4,
+    "name": "Bob Brown",
+    "avatar": "https://thumbs.dreamstime.com/b/arabic-business-man-traditional-muslim-hat-placeholder-102337208.jpg",
+    "timestamp": "2025-03-24T10:01:00Z",
+    "lastMessage": "Sure, I'll send it over.",
+    "messages": []
+  }
+]
