@@ -7,9 +7,11 @@ import { generateKeyPair } from "../utils/generateKeyPairUtils";
 import { encryptPrivateKey } from "../utils/privateKeyUtils";
 import { saveEncryptedPrivateKey } from "../utils/storageUtils";
 import { savePublicKey } from "../utils/publicKeyUtils";
+import { createUser } from "../api/api";
 
 const SignUp = () => {
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -29,6 +31,14 @@ const SignUp = () => {
 
     setIsLoading(true);
     setErrorMessage("");
+
+    await createUser(
+      JSON.stringify({
+        username: username,
+        email: email,
+        password: password,
+      })
+    );
 
     // Generate Key Pair (Public and Private Keys)
     try {
@@ -99,7 +109,22 @@ const SignUp = () => {
               className="w-full px-4 py-2 rounded-md bg-white border border-gray text-black focus:outline-none focus:ring-2 focus:ring-blue-light focus:border-transparent text-sm lg:text-base"
             />
           </div>
-
+          <div>
+            <label
+              htmlFor="email"
+              className="block text-xs lg:text-sm font-medium text-white mb-1"
+            >
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-2 rounded-md bg-white border border-gray text-black focus:outline-none focus:ring-2 focus:ring-blue-light focus:border-transparent text-sm lg:text-base"
+            />
+          </div>
           <div>
             <label
               htmlFor="password"
@@ -154,7 +179,7 @@ const SignUp = () => {
               {errorMessage}
             </div>
           )}
-        
+
           <button
             onClick={handleSignUp}
             disabled={isLoading}
