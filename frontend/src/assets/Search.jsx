@@ -14,17 +14,17 @@ const Search = ({ className }) => (
       cy="8.82495"
       r="6.74142"
       stroke="#929292"
-      stroke-width="1.5"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     />
     <path
       opacity="0.4"
       d="M13.5137 13.8639L16.1567 16.5"
       stroke="#929292"
-      stroke-width="1.5"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     />
   </svg>
 );
