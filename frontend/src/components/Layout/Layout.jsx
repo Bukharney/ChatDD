@@ -1,12 +1,12 @@
 import React from "react";
-import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import { NavLink, useNavigate, useLocation, Outlet } from "react-router-dom";
 import Logo from "../../assets/Logo";
 import ProfileIcon from "../../assets/Profile";
 import ChatIcon from "../../assets/Chat";
 import LogoutIcon from "../../assets/Logout";
 import Arrow from "../../assets/Arrow";
 
-const Layout = ({ children }) => {
+const Layout = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -57,8 +57,8 @@ const Layout = ({ children }) => {
           </ul>
         </nav>
       </aside>
-      <div className=" w-screen h-screen flex flex-col overflow-scroll  scrollbar-hide ">
-        <nav className="py-4 lg:py-6 px-6 border-b border-dark-gray ">
+      <div className="w-screen h-screen flex flex-col overflow-scroll scrollbar-hide">
+        <nav className="py-4 lg:py-6 px-6 border-b border-dark-gray">
           <div className="flex flex-row gap-3 items-center">
             <button onClick={() => navigate(-1)}>
               <Arrow className="w-8 h-8 text-dark-gray" />
@@ -67,7 +67,9 @@ const Layout = ({ children }) => {
           </div>
         </nav>
         <div className="h-full w-full">
-          <main>{children}</main>
+          <main>
+            <Outlet />
+          </main>
         </div>
       </div>
     </div>
