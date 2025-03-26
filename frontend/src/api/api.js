@@ -18,7 +18,7 @@ const createUser = async (user) => {
 
 const loginUser = async (user) => {
   try {
-    const response = await axios.post(`${baseUrl}/v1/auth/login/`, user, {
+    const response = await axios.post(`${baseUrl}/v1/auth/login`, user, {
       headers: {
         "Content-Type": "application/json",
       },
