@@ -9,16 +9,17 @@ import Profile from "./components/Profile";
 
 const AppRouter = () => {
   return (
-    <Layout>
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="login" element={<Login />} />
-        <Route path="signup" element={<SignUp />} />
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route path="login" element={<Login />} />
+      <Route path="register" element={<SignUp />} />
+
+      <Route element={<Layout />}>
         <Route path="profile" element={<Profile />} />
         <Route path="chat" element={<Chat />} />
         <Route path="logout" element={<Logout />} />
-      </Routes>
-    </Layout>
+      </Route>
+    </Routes>
   );
 };
 
