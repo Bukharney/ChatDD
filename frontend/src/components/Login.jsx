@@ -106,7 +106,7 @@ const Login = () => {
               <button
                 type="button"
                 onClick={togglePasswordVisibility}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-blue-light"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray hover:text-blue-light"
               >
                 {showPassword ? (
                   <EyeOff className="w-5 h-5" />
@@ -134,7 +134,7 @@ const Login = () => {
 
           <button
             onClick={handleLogin}
-            className="w-full py-2 px-4 bg-gradient-to-r from-blue-light to-blue text-white hover:from-blue hover:to-blue-darker  font-medium rounded-md transition duration-200"
+            className="w-full py-2 px-4 bg-gradient-to-r from-blue-light to-blue text-white hover:from-blue hover:to-blue-light  font-medium rounded-md transition duration-200"
           >
             Sign in
           </button>

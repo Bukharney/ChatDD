@@ -73,17 +73,6 @@ const SignUp = () => {
     <div className="h-screen bg-black flex items-center justify-center relative">
       <LoginBG className="absolute inset-0 overflow-hidden" />
 
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute left-1/4 top-1/3 w-8 h-8 rounded-full border border-green-400 flex items-center justify-center">
-          <div className="w-5 h-5 bg-black border border-green-400 transform rotate-45"></div>
-        </div>
-        <div className="absolute right-1/4 top-2/3 w-8 h-8 rounded-full border border-yellow-400"></div>
-        <div className="absolute left-3/4 bottom-1/3 w-8 h-8 rounded-full border border-green-400"></div>
-        <div className="absolute opacity-20 w-full h-full">
-          <div className="w-full h-full bg-[url('/circuit-pattern.svg')] bg-repeat"></div>
-        </div>
-      </div>
-      {/* Signup card */}
       <div className="w-full max-w-md p-8 mx-6 lg:mx-0 rounded-3xl bg-black border-2 border-dark-gray shadow-xl relative z-10">
         <div className="flex justify-center mb-6">
           <Logo className="w-12 h-12 lg:h-16 lg:w-16" />
@@ -93,7 +82,7 @@ const SignUp = () => {
           Sign Up
         </h1>
 
-        <div className="space-y-4">
+        <div className="space-y-4 last:space-y-6">
           <div>
             <label
               htmlFor="username"
@@ -165,11 +154,11 @@ const SignUp = () => {
               {errorMessage}
             </div>
           )}
-
+        
           <button
             onClick={handleSignUp}
             disabled={isLoading}
-            className="w-full py-2 px-4 bg-gradient-to-r from-blue-light to-blue text-white hover:from-blue hover:to-blue-darker font-medium rounded-md transition duration-200 flex items-center justify-center"
+            className=" w-full py-2 px-4 bg-gradient-to-r from-blue-light to-blue text-white hover:from-blue hover:to-blue-light font-medium rounded-md transition duration-200 flex items-center justify-center"
           >
             {isLoading ? (
               <>
