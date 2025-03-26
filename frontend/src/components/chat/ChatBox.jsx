@@ -4,9 +4,11 @@ import Folder from "../../assets/Folder";
 import Camera from "../../assets/Camera";
 import Send from "../../assets/Send";
 import Search from "../../assets/Search";
+import SearchModal from "../modal/search";
 
 const ChatBox = () => {
   const [messages, setMessages] = useState([]);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -71,13 +73,16 @@ const ChatBox = () => {
               className="w-10 h-10 rounded-full"
             />
             <div className="flex flex-col">
-              <h2 className="text-white text-sm lg:text-base text-medium">
+              <h2 className="text-white text-sm lg:text-base font-medium">
                 Chatbot
               </h2>
               <p className="text-gray  text-2xs lg:text-xs">Online</p>
             </div>
           </div>
-          <button className=" rounded-lg p-1 flex items-center justify-center border-[1px] border-dark-gray">
+          <button
+            onClick={() => setIsSearchOpen(true)}
+            className="rounded-lg p-1 flex items-center justify-center border-[1px] border-dark-gray"
+          >
             <Search className="cursor-pointer w-6 h-6" />
           </button>
         </div>
@@ -126,7 +131,7 @@ const ChatBox = () => {
         <div className="p-2 bg-black rounded-xl flex flex-row gap-3 mt-4 items-center ">
           <input
             type="text"
-            className="w-full p-3 bg-black border-none outline-none rounded-xl text-white placeholder-gray "
+            className="w-full p-3 bg-black border-none outline-none rounded-xl text-white placeholder-gray focus:outline-none focus:ring-1 focus:ring-blue focus:border-transparent"
             placeholder="Type your message..."
           />
           <Folder className="cursor-pointer w-8 h-8" />
@@ -136,6 +141,10 @@ const ChatBox = () => {
           </button>
         </div>
       </div>
+      <SearchModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+      />
     </div>
   );
 };
