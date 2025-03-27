@@ -30,4 +30,36 @@ const loginUser = async (user) => {
   }
 };
 
-export { createUser, loginUser };
+const logoutUser = async () => {
+  try {
+    const token = localStorage.getItem('token') || '';
+    if (!token) {
+      console.log("No token found, clearing local storage only");
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      return { success: true, message: "Logged out successfully" };
+    }
+    
+    const response = await axios.post(`${baseUrl}/v1/auth/logout`, {}, {
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+    });
+    
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    
+    return response.data;
+  } catch (error) {
+    console.error("Error logging out:", error);
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    
+    return { success: true, message: "Logged out locally" };
+  }
+};
+
+export { createUser, loginUser, logoutUser };

@@ -13,8 +13,12 @@ module.exports = {
         'green': '#4CCD99',
         'yellow': '#FFF455',
         'black': '#0A0A0A',
+        'brown': '#827900',
         'dark-gray': '#1E1E1E',
         'gray': '#929292',
+        'gray-light': '#D9D9D9',
+        'border-gray': '#1E1E1E',
+        'custom-bg-gray' : '#0A0A0A'
       },
       fontSize: {
         '2xs': '0.625rem', 

@@ -1,17 +1,28 @@
-import React from "react";
+import React, { useState } from "react";
 import { NavLink, useNavigate, useLocation, Outlet } from "react-router-dom";
 import Logo from "../../assets/Logo";
 import ProfileIcon from "../../assets/Profile";
 import ChatIcon from "../../assets/Chat";
 import LogoutIcon from "../../assets/Logout";
 import Arrow from "../../assets/Arrow";
+import SignOutModal from "../modal/signOut";
 
 const Layout = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
 
-  const renderNavLink = (to, IconComponent) => (
-    <NavLink to={to}>
+  const handleLogoutClick = (e) => {
+    e.preventDefault(); // Prevent navigation to /logout route
+    setIsSignOutModalOpen(true);
+  };
+
+  const closeSignOutModal = () => {
+    setIsSignOutModalOpen(false);
+  };
+
+  const renderNavLink = (to, IconComponent, onClick) => (
+    <NavLink to={to} onClick={onClick}>
       {({ isActive }) => (
         <li
           className={
@@ -53,7 +64,7 @@ const Layout = () => {
             {renderNavLink("/chat", ChatIcon)}
           </ul>
           <ul className="w-full flex items-center justify-center mb-1 lg:mb-4">
-            {renderNavLink("/logout", LogoutIcon)}
+            {renderNavLink("/logout", LogoutIcon, handleLogoutClick)}
           </ul>
         </nav>
       </aside>
@@ -72,6 +83,12 @@ const Layout = () => {
           </main>
         </div>
       </div>
+      
+      {/* Sign Out Modal */}
+      <SignOutModal 
+        isOpen={isSignOutModalOpen} 
+        onClose={closeSignOutModal} 
+      />
     </div>
   );
 };

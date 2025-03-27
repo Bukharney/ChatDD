@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Logo from "../assets/Logo";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { LoginBG } from "../assets/LoginBG";
 import { EyeOn, EyeOff } from "../assets/Visibility";
 import { generateKeyPair } from "../utils/generateKeyPairUtils";
@@ -17,6 +17,7 @@ const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSignUp = async () => {
     if (!username || !password) {
@@ -32,22 +33,27 @@ const SignUp = () => {
     setIsLoading(true);
     setErrorMessage("");
 
-    await createUser(
-      JSON.stringify({
-        username: username,
-        email: email,
-        password: password,
-      })
-    );
-
-    // Generate Key Pair (Public and Private Keys)
     try {
+      // IMPORTANT: Make email the same as username to work around backend issue
+      // The backend tries to log in with username but looks up by email
+      const emailToUse = username;
+      
+      // Create user with minimal required data
+      const userData = {
+        username,
+        email: emailToUse, // Use username as email to work around backend issue
+        password
+      };
+      
+      console.log("Sending registration data:", userData);
+      
+      // Create the user account
+      const response = await createUser(userData);
+      console.log("Registration successful:", response);
+      
+      // Generate Key Pair (Public and Private Keys)
       const keyPair = await generateKeyPair();
       const { publicKey, privateKey } = keyPair;
-
-      console.log("Password:", password);
-      console.log("Public Key:", publicKey);
-      console.log("Private Key:", privateKey);
 
       // Encrypt Private Key with Password
       const { encryptedPrivateKey, salt } = await encryptPrivateKey(
@@ -55,21 +61,33 @@ const SignUp = () => {
         password
       );
 
-      console.log("Encrypted Private Key:", encryptedPrivateKey);
-      console.log("Salt:", salt);
-
-      // Save Public Key to server database
+      // Save Public Key to local storage
       await savePublicKey(publicKey);
 
       // Save the encrypted private key in browser storage
       await saveEncryptedPrivateKey(encryptedPrivateKey, salt);
 
-      alert("Sign Up successful! You can now log in.");
-
-      // Could redirect to login page here
+      // Navigate directly to the chat page instead of login
+      navigate('/login');
     } catch (error) {
       console.error("Registration error:", error);
-      setErrorMessage("Error generating keys or encrypting private key.");
+      
+      // Extract error message from the API response if available
+      if (error.response) {
+        console.log("Error response status:", error.response.status);
+        console.log("Error response data:", error.response.data);
+        
+        if (error.response.data && error.response.data.error) {
+          setErrorMessage(error.response.data.error);
+        } else {
+          setErrorMessage(`Error during registration (${error.response.status}). Please try again.`);
+        }
+      } else if (error.request) {
+        console.log("Error request:", error.request);
+        setErrorMessage("No response received from server. Please try again.");
+      } else {
+        setErrorMessage("Error during registration. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
