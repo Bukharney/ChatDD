@@ -52,7 +52,7 @@ func (a *AuthController) Login(c *gin.Context) {
 		Value:    res.AccessToken,
 		HttpOnly: true,
 		Path:     "/",
-		Secure:   true,
+		Secure:   false,
 		SameSite: http.SameSiteNoneMode,
 	})
 
@@ -105,7 +105,7 @@ func (a *AuthController) RefreshToken(c *gin.Context) {
 		Value:    *res,
 		HttpOnly: true,
 		Path:     "/",
-		Secure:   true,
+		Secure:   false,
 		SameSite: http.SameSiteNoneMode,
 	})
 

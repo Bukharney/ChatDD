@@ -2,9 +2,8 @@ package ws
 
 import (
 	"fmt"
+	"log"
 	"net/http"
-	"strconv"
-	"time"
 
 	"github.com/bukharney/ChatDD/middlewares"
 	"github.com/bukharney/ChatDD/modules/entities"
@@ -24,16 +23,14 @@ var upgrader = websocket.Upgrader{
 type Client struct {
 	Chat entities.ChatRepository
 	User *entities.UsersClaims
-	ID   string
 	Conn *websocket.Conn
 	send chan Message
 	hub  *Hub
 }
 
 // NewClient creates a new client
-func NewClient(id string, conn *websocket.Conn, hub *Hub, user *entities.UsersClaims, chat entities.ChatRepository) *Client {
+func NewClient(conn *websocket.Conn, hub *Hub, user *entities.UsersClaims, chat entities.ChatRepository) *Client {
 	return &Client{
-		ID:   id,
 		Conn: conn,
 		send: make(chan Message, 256),
 		hub:  hub,
@@ -51,19 +48,12 @@ func (c *Client) Read() {
 
 	for {
 		var msg Message
-		msg.Sender = c.User.Id
-		msg.Timestamp = time.Now().Format("2006-01-02 15:04:05")
 		err := c.Conn.ReadJSON(&msg)
 		if err != nil {
 			fmt.Println("Error: ", err)
 			break
 		}
-		RoomId, _ := strconv.Atoi(msg.ID)
-		c.Chat.SendMessage(&entities.ChatMessage{
-			RoomId:  RoomId,
-			Sender:  c.User.Id,
-			Message: msg.Content,
-		})
+		msg.From = c.User.Id.String()
 		c.hub.broadcast <- msg
 	}
 }
@@ -75,7 +65,10 @@ func (c *Client) Write() {
 	}()
 
 	for message := range c.send {
-		_ = c.Conn.WriteJSON(message)
+		if err := c.Conn.WriteJSON(message); err != nil {
+			log.Println("Error writing message to client: ", err)
+			break
+		}
 	}
 }
 
@@ -88,12 +81,19 @@ func (c *Client) Close() {
 func ServeWS(c *gin.Context, hub *Hub, chatRepo entities.ChatRepository) {
 	roomId := c.Param("roomId")
 	if roomId == "" {
+		log.Println("Room ID is required")
 		c.JSON(400, gin.H{"error": "roomId is required"})
 		return
 	}
 
-	tk := c.Query("token")
+	tk, err := c.Cookie("access_token")
+	if err != nil {
+		log.Println("Error getting token from cookie: ", err)
+		c.JSON(400, gin.H{"error": "token is required"})
+		return
+	}
 	if tk == "" {
+		log.Println("Token is required")
 		c.JSON(400, gin.H{"error": "token is required"})
 		return
 	}
@@ -110,9 +110,7 @@ func ServeWS(c *gin.Context, hub *Hub, chatRepo entities.ChatRepository) {
 		return
 	}
 
-	fmt.Println("Client connected")
-
-	client := NewClient(roomId, ws, hub, user, chatRepo)
+	client := NewClient(ws, hub, user, chatRepo)
 
 	hub.register <- client
 

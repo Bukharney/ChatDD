@@ -2,31 +2,32 @@ package ws
 
 import (
 	"fmt"
-	"time"
-
-	"github.com/google/uuid"
+	"log"
 )
 
 type Hub struct {
-	clients    map[string]map[*Client]bool
-	unregister chan *Client
-	register   chan *Client
-	broadcast  chan Message
+	clients     map[string]*Client
+	pendingKeys map[string]map[string]string
+	unregister  chan *Client
+	register    chan *Client
+	broadcast   chan Message
 }
 
 type Message struct {
-	Sender    uuid.UUID `json:"sender"`
-	Content   string    `json:"content"`
-	ID        string    `json:"id"`
-	Timestamp string    `json:"timestamp"`
+	Type      string `json:"type"`
+	From      string `json:"from"`
+	To        string `json:"to"`
+	PublicKey string `json:"public_key,omitempty"`
+	Content   string `json:"content,omitempty"`
 }
 
 func NewHub() *Hub {
 	return &Hub{
-		clients:    make(map[string]map[*Client]bool),
-		unregister: make(chan *Client),
-		register:   make(chan *Client),
-		broadcast:  make(chan Message),
+		clients:     make(map[string]*Client),
+		pendingKeys: make(map[string]map[string]string),
+		unregister:  make(chan *Client),
+		register:    make(chan *Client),
+		broadcast:   make(chan Message),
 	}
 }
 
@@ -44,38 +45,67 @@ func (h *Hub) Run() {
 }
 
 func (h *Hub) RegisterNewClient(client *Client) {
-	connections := h.clients[client.ID]
+	userId := client.User.Id.String()
+	connections := h.clients[userId]
 	if connections == nil {
-		connections = make(map[*Client]bool)
-		h.clients[client.ID] = connections
+		h.clients[userId] = client
 	}
-	h.clients[client.ID][client] = true
-	h.HandleMessage(Message{
-		Sender:    uuid.Nil,
-		Content:   client.User.Username + " has joined the room",
-		ID:        client.ID,
-		Timestamp: time.Now().Format("2006-01-02 15:04:05"),
-	})
+
+	if storedKeys, exists := h.pendingKeys[userId]; exists {
+		for sender, key := range storedKeys {
+			h.HandleMessage(Message{
+				Type:      "key-exchange",
+				From:      sender,
+				To:        userId,
+				PublicKey: key,
+			})
+		}
+		delete(h.pendingKeys, userId) // Remove after sending
+	}
 	fmt.Println("Registered new client")
 }
 
 func (h *Hub) RemoveClient(client *Client) {
-	if _, ok := h.clients[client.ID]; ok {
-		delete(h.clients[client.ID], client)
+	if _, ok := h.clients[client.User.Id.String()]; ok {
+		delete(h.clients, client.User.Id.String())
 		close(client.send)
 		fmt.Println("Unregistered client")
 	}
 }
 
 func (h *Hub) HandleMessage(message Message) {
-	clients := h.clients[message.ID]
-	for client := range clients {
-		select {
-		case client.send <- message:
-
-		default:
-			close(client.send)
-			delete(h.clients[message.ID], client)
+	receiverClient, receiverOnline := h.clients[message.To]
+	switch message.Type {
+	case "key-exchange":
+		if receiverOnline {
+			receiverClient.send <- message
+		} else {
+			if h.pendingKeys[message.To] == nil {
+				h.pendingKeys[message.To] = make(map[string]string)
+			}
+			h.pendingKeys[message.To][message.From] = message.PublicKey
 		}
+		return
+	case "handshake":
+		if receiverOnline {
+			receiverClient.send <- Message{
+				Type: "chat_ready",
+				From: "server",
+				To:   message.From,
+			}
+			h.clients[message.From].send <- Message{
+				Type: "chat_ready",
+				From: "server",
+				To:   message.To,
+			}
+		}
+		return
+	case "message":
+		if receiverOnline {
+			receiverClient.send <- message
+		}
+		return
 	}
+
+	log.Println("Unknown message type:", message.Type)
 }
