@@ -44,7 +44,7 @@ func (s *Server) Run() error {
 	go hub.Run()
 
 	chatRepo := repositories.NewChatRepo(s.DB)
-	s.App.GET("/ws/:roomId", func(c *gin.Context) {
+	s.App.GET("/ws", func(c *gin.Context) {
 		ws.ServeWS(c, hub, chatRepo)
 	})
 

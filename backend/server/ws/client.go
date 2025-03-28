@@ -79,13 +79,6 @@ func (c *Client) Close() {
 
 // Function to handle websocket connection and register client to hub and start goroutines
 func ServeWS(c *gin.Context, hub *Hub, chatRepo entities.ChatRepository) {
-	roomId := c.Param("roomId")
-	if roomId == "" {
-		log.Println("Room ID is required")
-		c.JSON(400, gin.H{"error": "roomId is required"})
-		return
-	}
-
 	tk, err := c.Cookie("access_token")
 	if err != nil {
 		log.Println("Error getting token from cookie: ", err)

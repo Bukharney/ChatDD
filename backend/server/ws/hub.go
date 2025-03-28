@@ -2,15 +2,13 @@ package ws
 
 import (
 	"fmt"
-	"log"
 )
 
 type Hub struct {
-	clients     map[string]*Client
-	pendingKeys map[string]map[string]string
-	unregister  chan *Client
-	register    chan *Client
-	broadcast   chan Message
+	clients    map[string]*Client
+	unregister chan *Client
+	register   chan *Client
+	broadcast  chan Message
 }
 
 type Message struct {
@@ -23,11 +21,10 @@ type Message struct {
 
 func NewHub() *Hub {
 	return &Hub{
-		clients:     make(map[string]*Client),
-		pendingKeys: make(map[string]map[string]string),
-		unregister:  make(chan *Client),
-		register:    make(chan *Client),
-		broadcast:   make(chan Message),
+		clients:    make(map[string]*Client),
+		unregister: make(chan *Client),
+		register:   make(chan *Client),
+		broadcast:  make(chan Message),
 	}
 }
 
@@ -51,17 +48,6 @@ func (h *Hub) RegisterNewClient(client *Client) {
 		h.clients[userId] = client
 	}
 
-	if storedKeys, exists := h.pendingKeys[userId]; exists {
-		for sender, key := range storedKeys {
-			h.HandleMessage(Message{
-				Type:      "key-exchange",
-				From:      sender,
-				To:        userId,
-				PublicKey: key,
-			})
-		}
-		delete(h.pendingKeys, userId) // Remove after sending
-	}
 	fmt.Println("Registered new client")
 }
 
@@ -75,37 +61,7 @@ func (h *Hub) RemoveClient(client *Client) {
 
 func (h *Hub) HandleMessage(message Message) {
 	receiverClient, receiverOnline := h.clients[message.To]
-	switch message.Type {
-	case "key-exchange":
-		if receiverOnline {
-			receiverClient.send <- message
-		} else {
-			if h.pendingKeys[message.To] == nil {
-				h.pendingKeys[message.To] = make(map[string]string)
-			}
-			h.pendingKeys[message.To][message.From] = message.PublicKey
-		}
-		return
-	case "handshake":
-		if receiverOnline {
-			receiverClient.send <- Message{
-				Type: "chat_ready",
-				From: "server",
-				To:   message.From,
-			}
-			h.clients[message.From].send <- Message{
-				Type: "chat_ready",
-				From: "server",
-				To:   message.To,
-			}
-		}
-		return
-	case "message":
-		if receiverOnline {
-			receiverClient.send <- message
-		}
-		return
+	if receiverOnline {
+		receiverClient.send <- message
 	}
-
-	log.Println("Unknown message type:", message.Type)
 }
