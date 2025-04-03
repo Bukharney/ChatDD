@@ -25,7 +25,6 @@ type ChatClient struct {
 	PrivateKey    []byte
 	AESKey        []byte
 	Recipient     string
-	Handshake     bool
 	sentPublicKey bool   // Tracks if we have sent our public key
 	peerPublicKey []byte // Stores the received public key
 }
@@ -39,48 +38,45 @@ type Message struct {
 }
 
 func main() {
-	if len(os.Args) < 3 {
+	if len(os.Args) < 4 {
 		log.Fatal("Usage: ./client <username> <password> <recipient>")
 	}
 
 	user, password, recipient := os.Args[1], os.Args[2], os.Args[3]
-
 	accessToken, err := login(user, password)
 	if err != nil {
-		log.Fatal("Login failed:", err)
+		log.Fatalf("Login failed: %v", err)
 	}
 	log.Println("Login successful. Access token obtained.")
 
 	headers := http.Header{}
 	headers.Set("Cookie", "access_token="+accessToken)
-
 	serverURL := "ws://localhost:8080/ws"
 	conn, err := connectWebSocket(serverURL, headers)
 	if err != nil {
-		log.Fatal("WebSocket connection failed:", err)
+		log.Fatalf("WebSocket connection failed: %v", err)
 	}
 	defer conn.Close()
 
 	client := &ChatClient{User: user, Recipient: recipient, Conn: conn}
+	client.initialize()
+}
 
-	err = client.generateKeyPair()
-	if err != nil {
+func (c *ChatClient) initialize() {
+	if err := c.generateKeyPair(); err != nil {
 		log.Fatal("Key generation failed:", err)
 	}
 
-	err = client.sendHandshake("request")
-	if err != nil {
+	if err := c.sendHandshake("request"); err != nil {
 		log.Fatal("Failed to send handshake:", err)
 	}
 
-	client.messageLoop()
+	c.messageLoop()
 }
 
 func login(user, password string) (string, error) {
-	loginURL := "http://localhost:8080/v1/auth/login"
-	payload := fmt.Sprintf(`{"username":"%s","password":"%s"}`, user, password)
-
-	resp, err := http.Post(loginURL, "application/json", strings.NewReader(payload))
+	resp, err := http.Post("http://localhost:8080/v1/auth/login", "application/json",
+		strings.NewReader(fmt.Sprintf(`{"username":"%s","password":"%s"}`, user, password)))
 	if err != nil {
 		return "", err
 	}
@@ -95,12 +91,12 @@ func login(user, password string) (string, error) {
 		return "", errors.New("missing Set-Cookie header")
 	}
 
-	parts := strings.Split(header, ";")
-	cookieParts := strings.Split(parts[0], "=")
-	if len(cookieParts) != 2 || cookieParts[0] != "access_token" {
-		return "", errors.New("invalid Set-Cookie format")
+	for _, part := range strings.Split(header, ";") {
+		if strings.HasPrefix(part, "access_token=") {
+			return strings.Split(part, "=")[1], nil
+		}
 	}
-	return cookieParts[1], nil
+	return "", errors.New("invalid Set-Cookie format")
 }
 
 func connectWebSocket(url string, headers http.Header) (*websocket.Conn, error) {
@@ -117,20 +113,18 @@ func (c *ChatClient) generateKeyPair() error {
 	if err != nil {
 		return err
 	}
-	c.PublicKey = publicKey
-	c.PrivateKey = privateKey
-	return err
+	c.PublicKey, c.PrivateKey = publicKey, privateKey
+	return nil
 }
 
 func (c *ChatClient) sendPublicKey() error {
-	encodedPubKey := base64.StdEncoding.EncodeToString(c.PublicKey)
 	err := c.Conn.WriteJSON(Message{
 		Type:      "key-exchange",
 		To:        c.Recipient,
-		PublicKey: encodedPubKey,
+		PublicKey: base64.StdEncoding.EncodeToString(c.PublicKey),
 	})
 	if err == nil {
-		c.sentPublicKey = true // Only mark if sending was successful
+		c.sentPublicKey = true
 	}
 	return err
 }
@@ -138,9 +132,9 @@ func (c *ChatClient) sendPublicKey() error {
 func (c *ChatClient) sendHandshake(status string) error {
 	return c.Conn.WriteJSON(Message{
 		Type:    "handshake",
-		Content: status,
 		From:    c.User,
 		To:      c.Recipient,
+		Content: status,
 	})
 }
 
@@ -172,9 +166,8 @@ func (c *ChatClient) sendMessage() {
 
 func (c *ChatClient) messageLoop() {
 	for {
-		msg := Message{}
-		err := c.Conn.ReadJSON(&msg)
-		if err != nil {
+		var msg Message
+		if err := c.Conn.ReadJSON(&msg); err != nil {
 			if errors.Is(err, io.EOF) {
 				log.Println("Connection closed by server.")
 			} else {
@@ -185,98 +178,103 @@ func (c *ChatClient) messageLoop() {
 
 		switch msg.Type {
 		case "key-exchange":
-			if msg.PublicKey == "" {
-				log.Println("Received key exchange request but no public key. Sending mine...")
-				if err := c.sendPublicKey(); err != nil {
-					log.Println("Failed to send public key:", err)
-				}
-				continue
-			}
-
-			peerPublicKey, err := base64.StdEncoding.DecodeString(msg.PublicKey)
-			if err != nil {
-				log.Println("Invalid public key received:", err)
-				continue
-			}
-
-			log.Println("Received public key from", msg.From)
-
-			// Store peer's public key
-			c.peerPublicKey = peerPublicKey
-
-			// Ensure we also sent ours
-			if !c.sentPublicKey {
-				if err := c.sendPublicKey(); err != nil {
-					log.Println("Failed to send public key:", err)
-					continue
-				}
-			}
-
-			// Proceed only if both keys are exchanged
-			if c.peerPublicKey != nil && c.sentPublicKey {
-				sharedSecret, err := curve25519.X25519(c.PrivateKey, c.peerPublicKey)
-				if err != nil {
-					log.Println("Error computing shared secret:", err)
-					continue
-				}
-
-				c.AESKey, err = aes.DeriveKey(sharedSecret)
-				if err != nil {
-					log.Println("Failed to derive AES key:", err)
-					continue
-				}
-
-				log.Println("AES key established with", msg.From)
-
-				// Confirm chat is ready
-				err = c.sendHandshake("chat_ready")
-				if err != nil {
-					log.Println("Failed to send chat ready:", err)
-				}
-			}
+			c.handleKeyExchange(msg)
 		case "message":
-			if c.AESKey == nil {
-				log.Println("AES key is not established yet.")
-				continue
-			}
-			decryptedMessage, err := aes.DecryptMessage(msg.Content, c.AESKey)
-			if err != nil {
-				log.Println("Failed to decrypt message:", err)
-				continue
-			}
-			log.Printf("\nMessage from %s: %s\n", msg.From, decryptedMessage)
-
+			c.handleMessage(msg)
 		case "handshake":
-			switch msg.Content {
-			case "request":
-				err = c.sendHandshake("accepted")
-				if err != nil {
-					log.Println("Failed to send handshake response:", err)
-					continue
-				}
-				log.Println("Handshake accepted with", msg.From)
-
-			case "accepted":
-				err = c.sendHandshake("key-exchange")
-				if err != nil {
-					log.Println("Failed to send key exchange:", err)
-					continue
-				}
-				log.Println("Handshake accepted by", msg.From)
-
-			case "key-exchange":
-				log.Println("Key exchange requested by", msg.From)
-
-				if err := c.sendPublicKey(); err != nil {
-					log.Println("Failed to send public key:", err)
-					continue
-				}
-				log.Println("Public key sent to", msg.From)
-
-			case "chat_ready":
-				log.Println("Chat ready with", msg.From)
-				go c.sendMessage()
-			}
+			c.handleHandshake(msg)
+		default:
+			log.Println("Unknown message type:", msg.Type)
 		}
+	}
+}
+
+func (c *ChatClient) handleKeyExchange(msg Message) {
+	if msg.PublicKey == "" {
+		log.Println("Received key exchange request but no public key. Sending mine...")
+		if err := c.sendPublicKey(); err != nil {
+			log.Println("Failed to send public key:", err)
+		}
+		return
+	}
+	peerPublicKey, err := base64.StdEncoding.DecodeString(msg.PublicKey)
+	if err != nil {
+		log.Println("Invalid public key received:", err)
+		return
+	}
+
+	log.Println("Received public key from", msg.From)
+
+	// Store peer's public key
+	c.peerPublicKey = peerPublicKey
+
+	// Ensure we also sent ours
+	if !c.sentPublicKey {
+		if err := c.sendPublicKey(); err != nil {
+			log.Println("Failed to send public key:", err)
+			return
+		}
+	}
+	// Proceed only if both keys are exchanged
+	if c.peerPublicKey != nil && c.sentPublicKey {
+		sharedSecret, err := curve25519.X25519(c.PrivateKey, c.peerPublicKey)
+		if err != nil {
+			log.Println("Error computing shared secret:", err)
+			return
+		}
+		c.AESKey, err = aes.DeriveKey(sharedSecret)
+		if err != nil {
+			log.Println("Failed to derive AES key:", err)
+			return
+		}
+		log.Println("AES key established with", msg.From)
+		// Confirm chat is ready
+		err = c.sendHandshake("chat-ready")
+		if err != nil {
+			log.Println("Failed to send chat ready:", err)
+		}
+	}
+}
+
+func (c *ChatClient) handleMessage(msg Message) {
+	if c.AESKey == nil {
+		log.Println("AES key is not established yet.")
+		return
+	}
+	decryptedMessage, err := aes.DecryptMessage(msg.Content, c.AESKey)
+	if err != nil {
+		log.Println("Failed to decrypt message:", err)
+		return
+	}
+	log.Printf("\nMessage from %s: %s\n", msg.From, decryptedMessage)
+}
+
+func (c *ChatClient) handleHandshake(msg Message) {
+	switch msg.Content {
+	case "request":
+		err := c.sendHandshake("accepted")
+		if err != nil {
+			log.Println("Failed to send handshake response:", err)
+			return
+		}
+		log.Println("Handshake accepted with", msg.From)
+	case "accepted":
+		err := c.sendHandshake("key-exchange")
+		if err != nil {
+			log.Println("Failed to send key exchange:", err)
+			return
+		}
+		log.Println("Handshake accepted by", msg.From)
+	case "key-exchange":
+		log.Println("Key exchange requested by", msg.From)
+
+		if err := c.sendPublicKey(); err != nil {
+			log.Println("Failed to send public key:", err)
+			return
+		}
+		log.Println("Public key sent to", msg.From)
+	case "chat-ready":
+		log.Println("Chat ready with", msg.From)
+		go c.sendMessage()
 	}
 }
