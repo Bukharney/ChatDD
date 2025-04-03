@@ -23,6 +23,7 @@ type ChatClient struct {
 	User          string
 	PublicKey     []byte
 	PrivateKey    []byte
+	Salt          []byte
 	AESKey        []byte
 	Recipient     string
 	sentPublicKey bool   // Tracks if we have sent our public key
@@ -34,6 +35,7 @@ type Message struct {
 	From      string `json:"from"`
 	To        string `json:"to"`
 	PublicKey string `json:"public_key,omitempty"`
+	Salt      string `json:"salt,omitempty"`
 	Content   string `json:"content,omitempty"`
 }
 
@@ -113,7 +115,12 @@ func (c *ChatClient) generateKeyPair() error {
 	if err != nil {
 		return err
 	}
-	c.PublicKey, c.PrivateKey = publicKey, privateKey
+	salt, err := aes.GenerateRandomSalt()
+	if err != nil {
+		log.Println("Failed to generate salt:", err)
+		return err
+	}
+	c.PublicKey, c.PrivateKey, c.Salt = publicKey, privateKey, salt
 	return nil
 }
 
@@ -222,7 +229,12 @@ func (c *ChatClient) handleKeyExchange(msg Message) {
 			log.Println("Error computing shared secret:", err)
 			return
 		}
-		c.AESKey, err = aes.DeriveKey(sharedSecret)
+		saltByte, err := base64.StdEncoding.DecodeString(msg.Salt)
+		if err != nil {
+			log.Println("Invalid salt received:", err)
+			return
+		}
+		c.AESKey, err = aes.DeriveKey(sharedSecret, saltByte)
 		if err != nil {
 			log.Println("Failed to derive AES key:", err)
 			return
