@@ -62,10 +62,10 @@ const EditProfileModal = ({ isOpen, onClose, onSubmit, loading, profile }) => {
             />
           </div>
 
-          <div className="pt-4 flex space-x-4">
+          <div className="pt-4 flex space-x-4 justify-center">
             <button
               type="submit"
-              className="bg-gradient-to-r from-blue to-blue-light text-white px-4 py-2 rounded-lg"
+              className="bg-gradient-to-r w-full from-blue-light to-blue text-black font-bold hover:from-blue-light hover:to-blue-light px-4 py-2 rounded-lg"
               disabled={loading}
             >
               {loading ? "Saving..." : "Save Changes"}
@@ -73,7 +73,7 @@ const EditProfileModal = ({ isOpen, onClose, onSubmit, loading, profile }) => {
             <button
               type="button"
               onClick={onClose}
-              className="bg-gray text-white px-4 py-2 rounded-lg"
+              className="bg-gradient-to-r w-full from-yellow to-brown text-black px-4 py-2 rounded-lg"
             >
               Close
             </button>

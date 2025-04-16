@@ -201,7 +201,7 @@ const SignUp = () => {
           <button
             onClick={handleSignUp}
             disabled={isLoading}
-            className=" w-full py-2 px-4 bg-gradient-to-r from-blue-light to-blue text-white hover:from-blue hover:to-blue-light font-medium rounded-md transition duration-200 flex items-center justify-center"
+            className=" w-full py-2 px-4 bg-gradient-to-r from-blue-light to-dark-teal text-black font-bold hover:from-blue-light hover:to-blue-light font-medium rounded-md transition duration-200 flex items-center justify-center"
           >
             {isLoading ? (
               <>

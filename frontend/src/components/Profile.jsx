@@ -68,7 +68,7 @@ const Profile = () => {
 
         <div className="space-y-4">
           <div className="flex items-center mb-6 overflow-auto gap-x-6 p-2">
-            <div className="relative w-24 h-24">
+            <div className="relative  w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24">
               <div className="absolute inset-0 -m-2 rounded-full border-[3px] border-blue-light"></div>
               <img
                 src={profile.avatar || "default-avatar.png"}
@@ -76,8 +76,6 @@ const Profile = () => {
                 className="w-24 h-24 rounded-full border-[3px] border-none"
               />
             </div>
-
-
             <div>
               <h3 className="text-lg font-semibold">{profile.username}</h3>
               <p className="text-gray">{profile.email}</p>

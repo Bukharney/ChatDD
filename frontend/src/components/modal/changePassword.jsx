@@ -96,7 +96,7 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, loading }) => {
           <div className="pt-4 flex space-x-4">
             <button
               type="submit"
-              className="bg-gradient-to-r from-blue to-blue-light text-black px-4 py-2 rounded-lg"
+              className="bg-gradient-to-r w-full from-yellow to-brown text-black px-4 py-2 rounded-lg"
               disabled={loading}
             >
               {loading ? "Changing..." : "Change Password"}
@@ -104,7 +104,7 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, loading }) => {
             <button
               type="button"
               onClick={handleClose}
-              className="bg-gray text-white px-4 py-2 rounded-lg"
+              className="bg-gradient-to-r w-full from-blue to-blue-light text-black px-4 py-2 rounded-lg"
             >
               Cancel
             </button>
