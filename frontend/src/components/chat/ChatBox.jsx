@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
+import DOMPurify from "dompurify"; 
 import chatData from "../../data/chatData.json";
 import Folder from "../../assets/Folder";
 import Camera from "../../assets/Camera";
@@ -10,6 +11,7 @@ import SearchModal from "../modal/search";
 const ChatBox = ({ contact }) => {
   const [messages, setMessages] = useState([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [inputValue, setInputValue] = useState(""); 
   const bottomRef = useRef(null);
   const location = useLocation();
 
@@ -33,6 +35,28 @@ const ChatBox = ({ contact }) => {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "auto" });
   }, [messages]);
+
+  const sanitizeInput = (input) => {
+    return DOMPurify.sanitize(input); 
+  };
+
+  const handleInputChange = (e) => {
+    setInputValue(e.target.value);
+  };
+
+  const handleSendMessage = () => {
+    if (inputValue.trim() === "") return;
+
+    const sanitizedMessage = sanitizeInput(inputValue); 
+    const newMessage = {
+      sender: "user",
+      text: sanitizedMessage,
+      timestamp: new Date().toISOString(),
+    };
+
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
+    setInputValue(""); 
+  };
 
   const formatTimestamp = (timestamp, sender) => {
     const date = new Date(timestamp);
@@ -150,12 +174,17 @@ const ChatBox = ({ contact }) => {
         <div className="p-2 bg-black rounded-xl flex flex-row gap-3 mt-4 items-center ">
           <input
             type="text"
+            value={inputValue}
+            onChange={handleInputChange}
             className="w-full p-3 bg-black border-none outline-none rounded-xl text-white placeholder-gray focus:outline-none focus:ring-1 focus:ring-blue focus:border-transparent"
             placeholder="Type your message..."
           />
           <Folder className="cursor-pointer w-8 h-8" />
           <Camera className="cursor-pointer w-8 h-8" />
-          <button className="bg-gradient-to-r from-blue to-blue-light rounded-lg p-1 flex items-center justify-center ">
+          <button
+            onClick={handleSendMessage}
+            className="bg-gradient-to-r from-blue to-blue-light rounded-lg p-1 flex items-center justify-center "
+          >
             <Send className="cursor-pointer w-6 h-6" />
           </button>
         </div>
