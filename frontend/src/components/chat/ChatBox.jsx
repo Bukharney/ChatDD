@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import DOMPurify from "dompurify";
 import { useLocation } from "react-router-dom";
-import DOMPurify from "dompurify"; 
 import chatData from "../../data/chatData.json";
 import Folder from "../../assets/Folder";
 import Camera from "../../assets/Camera";
@@ -306,15 +306,17 @@ const ChatBox = ({ contact, currentUser }) => {
 
   const sendMessage = () => {
     if (inputMessage.trim() === "") return;
-
+  
+    const sanitizedMessage = DOMPurify.sanitize(inputMessage);
+  
     const newMessage = {
       from: currentUser.user_id,
       to: contact.id,
       type: "text",
-      content: inputMessage,
+      content: sanitizedMessage,
       timestamp: new Date().toISOString(),
     };
-
+  
     setMessages((prev) => [...prev, newMessage]);
     ws.current.send(JSON.stringify(newMessage));
     setInputMessage("");
@@ -388,8 +390,6 @@ const ChatBox = ({ contact, currentUser }) => {
         <div className="p-2 bg-black rounded-xl flex flex-row gap-3 mt-4 items-center ">
           <input
             type="text"
-            value={inputValue}
-            onChange={handleInputChange}
             className="w-full p-3 bg-black border-none outline-none rounded-xl text-white placeholder-gray focus:outline-none focus:ring-1 focus:ring-blue focus:border-transparent"
             placeholder="Type your message..."
             value={inputMessage}
