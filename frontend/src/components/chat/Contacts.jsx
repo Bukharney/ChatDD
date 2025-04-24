@@ -57,7 +57,7 @@ const Contacts = ({
       name: contactName,
       lastMessage: "",
       timestamp: new Date().toISOString(),
-      avatar: null,
+       avatar: 'https://thumbs.dreamstime.com/b/arabic-business-man-traditional-muslim-hat-placeholder-102337208.jpg',
       isActive: false,
     };
 
