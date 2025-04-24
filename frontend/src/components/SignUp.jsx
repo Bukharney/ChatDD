@@ -20,6 +20,27 @@ const SignUp = () => {
   const navigate = useNavigate();
 
   const handleSignUp = async () => {
+    const usernameRegex = /^[a-zA-Z0-9_-]{3,}$/;
+    if (!usernameRegex.test(username)) {
+      setErrorMessage("Username must be at least 3 characters");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setErrorMessage("Please enter a valid email address.");
+      return;
+    }
+
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[-])[A-Za-z\d-]{6,}$/;
+    if (!passwordRegex.test(password)) {
+      setErrorMessage(
+        "Password must be 6+ characters with uppercase, lowercase, number, and '-'"
+      );
+      return;
+    }
+
     if (!username || !password) {
       setErrorMessage("Please enter both username and password.");
       return;
@@ -37,20 +58,20 @@ const SignUp = () => {
       // IMPORTANT: Make email the same as username to work around backend issue
       // The backend tries to log in with username but looks up by email
       const emailToUse = username;
-      
+
       // Create user with minimal required data
       const userData = {
         username,
         email: emailToUse, // Use username as email to work around backend issue
-        password
+        password,
       };
-      
+
       console.log("Sending registration data:", userData);
-      
+
       // Create the user account
       const response = await createUser(userData);
       console.log("Registration successful:", response);
-      
+
       // Generate Key Pair (Public and Private Keys)
       const keyPair = await generateKeyPair();
       const { publicKey, privateKey } = keyPair;
@@ -68,19 +89,21 @@ const SignUp = () => {
       await saveEncryptedPrivateKey(encryptedPrivateKey, salt);
 
       // Navigate directly to the chat page instead of login
-      navigate('/login');
+      navigate("/login");
     } catch (error) {
       console.error("Registration error:", error);
-      
+
       // Extract error message from the API response if available
       if (error.response) {
         console.log("Error response status:", error.response.status);
         console.log("Error response data:", error.response.data);
-        
+
         if (error.response.data && error.response.data.error) {
           setErrorMessage(error.response.data.error);
         } else {
-          setErrorMessage(`Error during registration (${error.response.status}). Please try again.`);
+          setErrorMessage(
+            `Error during registration (${error.response.status}). Please try again.`
+          );
         }
       } else if (error.request) {
         console.log("Error request:", error.request);
