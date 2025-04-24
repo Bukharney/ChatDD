@@ -7,13 +7,16 @@ import Send from "../../assets/Send";
 import Search from "../../assets/Search";
 import SearchModal from "../modal/search";
 import hkdf from "@panva/hkdf"; // Make sure to install this with `npm install @panva/hkdf`
-import { generateKeyPair, encodeBase64 } from "../../utils/crypto"; // Adjust the import path as necessary
+import {
+  generateKeyPair,
+  encodeBase64,
+  decodeBase64,
+} from "../../utils/crypto"; // Adjust the import path as necessary
 import nacl from "tweetnacl";
 
 const ChatBox = ({ contact, currentUser }) => {
   const ws = useRef(null);
   const bottomRef = useRef(null);
-  const sentPublicKey = useRef(false);
   const keypair = useRef(null);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
@@ -50,9 +53,12 @@ const ChatBox = ({ contact, currentUser }) => {
       secretKey: secretKey,
       aesKey: null,
       salt: salt,
+      peerPublicKey: null,
+      sharedSecret: null,
+      sentPublicKey: false,
     };
-    console.log("Generated public key:", publicKey);
-    console.log("Generated private key:", secretKey);
+    console.log("Generated public key:", encodeBase64(publicKey));
+    console.log("Generated private key:", encodeBase64(secretKey));
   }, []);
 
   useEffect(() => {
@@ -79,9 +85,16 @@ const ChatBox = ({ contact, currentUser }) => {
       if (msg.type === "handshake") {
         handleHandshake(msg);
       } else if (msg.type === "key-exchange") {
-        await handleKeyExchange(msg);
+        await handleKeyExchange(
+          msg,
+          ws.current,
+          keypair.current,
+          contact,
+          currentUser,
+          setMessages
+        );
       } else if (msg.type === "message") {
-        await handleIncomingMessage(msg);
+        await handleIncomingMessage(msg, keypair.current, setMessages);
       }
     };
 
@@ -114,142 +127,148 @@ const ChatBox = ({ contact, currentUser }) => {
         })
       );
     } else if (msg.content === "key-exchange") {
-      sendPublicKey();
+      sendPublicKey(ws.current, currentUser, contact, keypair.current, true);
     } else if (msg.content == "Chat ready") {
       console.log("Chat is ready to send messages.");
     }
   };
 
-  const sendPublicKey = () => {
-    ws.current.send(
-      JSON.stringify({
-        type: "key-exchange",
-        from: currentUser.user_id,
-        to: contact.id,
-        public_key: encodeBase64(keypair.current.publicKey),
-        salt: encodeBase64(keypair.current.salt),
-      })
-    );
-  };
-
-  const handleKeyExchange = async (msg) => {
-    if (!msg.public_key) {
-      console.error("No public key provided for key exchange.");
-      sendPublicKey();
-      sentPublicKey.current = true;
-      return;
-    }
-
-    const peerPublicKey = decodeBase64(msg.public_key);
-    console.log("Received public key:", peerPublicKey);
-
-    if (!sentPublicKey.current) {
-      ws.current.send(
+  function sendPublicKey(ws, currentUser, contact, keypair, salt) {
+    if (salt) {
+      ws.send(
         JSON.stringify({
           type: "key-exchange",
           from: currentUser.user_id,
           to: contact.id,
-          public_key: encodeBase64(keypair.current.publicKey),
+          public_key: encodeBase64(keypair.publicKey),
+          salt: encodeBase64(keypair.salt),
         })
       );
-      sentPublicKey.current = true;
-      return;
     } else {
-      console.log("Public key already sent.");
-    }
-
-    if (sendPublicKey.current) {
-      const sharedSecret = nacl.box.before(
-        peerPublicKey,
-        keypair.current.secretKey
-      );
-      // Generate or decode salt
-      let salt;
-      if (msg.salt) {
-        salt = decodeBase64(msg.salt);
-      } else {
-        salt = keypair.current.salt;
-      }
-
-      console.log("Salt used for HKDF:", salt);
-      // Derive AES key using HKDF-SHA256
-      const aesKey = await hkdf(
-        "sha256",
-        sharedSecret,
-        salt,
-        "", // info
-        32 // 256-bit AES key
-      );
-
-      keypair.current = {
-        ...keypair.current,
-        sharedSecret: sharedSecret,
-        aesKey: aesKey,
-      };
-
-      console.log("Shared secret:", sharedSecret);
-      console.log("AES key derived, ready to chat.");
-
-      ws.current.send(
+      ws.send(
         JSON.stringify({
-          type: "handshake",
+          type: "key-exchange",
           from: currentUser.user_id,
           to: contact.id,
-          content: "chat-ready",
+          public_key: encodeBase64(keypair.publicKey),
         })
       );
     }
+  }
 
-    console.log("Chat ready.");
-    setMessages((prev) => [
-      ...prev,
-      {
-        from: currentUser.user_id,
-        to: contact.id,
-        content: "Chat ready.",
-        type: "message",
-      },
-    ]);
-  };
-
-  const handleIncomingMessage = async (msg) => {
-    if (!keypair.current?.aesKey) {
-      console.warn("AES key not set, cannot decrypt message.");
+  async function handleKeyExchange(
+    msg,
+    ws,
+    keypair,
+    contact,
+    currentUser,
+    setMessages
+  ) {
+    if (!msg.public_key) {
+      console.warn(
+        "Received key exchange request but no public key. Sending mine..."
+      );
+      if (!keypair.sentPublicKey) {
+        sendPublicKey(ws, currentUser, contact, keypair, true);
+        keypair.sentPublicKey = true;
+      }
       return;
     }
 
     try {
-      const encryptedBytes = new Uint8Array(decodeBase64(msg.content));
+      const peerPublicKey = decodeBase64(msg.public_key);
+      keypair.peerPublicKey = peerPublicKey;
 
-      if (encryptedBytes.length < 12) {
-        console.error(
-          "Invalid encrypted message length (too short for nonce)."
+      if (!keypair.sentPublicKey) {
+        sendPublicKey(ws, currentUser, contact, keypair, false);
+        keypair.sentPublicKey = true;
+      }
+
+      if (keypair.peerPublicKey && keypair.sentPublicKey) {
+        console.log("Peer public key:", encodeBase64(peerPublicKey));
+        console.log("Public key:", encodeBase64(keypair.publicKey));
+        console.log("Private key:", encodeBase64(keypair.secretKey));
+        const sharedSecret = deriveSharedSecret(
+          keypair.secretKey,
+          peerPublicKey
         );
+        console.log("Shared secret derived:", encodeBase64(sharedSecret));
+
+        const salt = msg.salt ? decodeBase64(msg.salt) : keypair.salt;
+        console.log("Salt:", encodeBase64(salt));
+        const aesKey = await hkdf("sha256", sharedSecret, salt, "", 32);
+
+        keypair.sharedSecret = sharedSecret;
+        keypair.aesKey = aesKey;
+
+        console.log("AES key derived:", encodeBase64(aesKey));
+
+        ws.send(
+          JSON.stringify({
+            type: "handshake",
+            from: currentUser.user_id,
+            to: contact.id,
+            content: "chat-ready",
+          })
+        );
+
+        console.log("Chat is ready to send messages.");
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            from: currentUser.user_id,
+            to: contact.id,
+            content: "Chat ready.",
+            type: "message",
+          },
+        ]);
+      }
+    } catch (err) {
+      console.error("Error during key exchange:", err);
+    }
+  }
+
+  async function handleIncomingMessage(msg, keypair, setMessages) {
+    if (!keypair.aesKey) {
+      console.warn("AES key not set. Cannot decrypt.");
+      return;
+    }
+
+    try {
+      const encryptedBytes = decodeBase64(msg.content);
+      if (encryptedBytes.length < 12) {
+        console.error("Invalid encrypted message (too short for nonce).");
         return;
       }
 
-      const nonce = encryptedBytes.slice(0, 12); // AES-GCM standard nonce length
+      const nonce = encryptedBytes.slice(0, 12);
       const ciphertext = encryptedBytes.slice(12);
 
-      const aesKey = await window.crypto.subtle.importKey(
+      console.log("Nonce:", encodeBase64(nonce));
+      console.log("Ciphertext:", encodeBase64(ciphertext));
+      console.log("AES key:", encodeBase64(keypair.aesKey));
+
+      const cryptoKey = await crypto.subtle.importKey(
         "raw",
-        keypair.current.aesKey,
+        keypair.aesKey,
         { name: "AES-GCM" },
         false,
         ["decrypt"]
       );
 
-      const decryptedBuffer = await window.crypto.subtle.decrypt(
-        {
-          name: "AES-GCM",
-          iv: nonce,
-        },
-        aesKey,
+      console.log("Crypto key imported:", cryptoKey);
+      console.log("Decrypting message...");
+
+      const decryptedBuffer = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: nonce },
+        cryptoKey,
         ciphertext
       );
 
-      const decryptedText = new TextDecoder().decode(decryptedBuffer);
+      console.log("Decrypted buffer:", decryptedBuffer);
 
+      const decryptedText = new TextDecoder().decode(decryptedBuffer);
       setMessages((prev) => [
         ...prev,
         {
@@ -260,17 +279,8 @@ const ChatBox = ({ contact, currentUser }) => {
         },
       ]);
     } catch (err) {
-      console.error("Error decrypting incoming message:", err);
+      console.error("Failed to decrypt message:", err);
     }
-  };
-
-  function decodeBase64(base64) {
-    const binary = atob(base64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-      bytes[i] = binary.charCodeAt(i);
-    }
-    return bytes;
   }
 
   const formatTimestamp = (timestamp, sender) => {
@@ -288,6 +298,10 @@ const ChatBox = ({ contact, currentUser }) => {
       .map((n) => n[0])
       .join("");
   };
+
+  function deriveSharedSecret(privateKey, peerPublicKey) {
+    return nacl.scalarMult(privateKey, peerPublicKey);
+  }
 
   const sendMessage = () => {
     if (inputMessage.trim() === "") return;

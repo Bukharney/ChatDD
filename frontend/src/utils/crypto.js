@@ -8,9 +8,14 @@ import naclUtil from "tweetnacl-util";
  */
 export function generateKeyPair() {
   const keyPair = nacl.box.keyPair();
+
+  // Truncate secret key to 32 bytes for compatibility with Curve25519 X25519
+  const truncatedSecretKey = keyPair.secretKey.subarray(0, 32);
+
   return {
-    publicKey: keyPair.publicKey,
-    secretKey: keyPair.secretKey,
+    publicKey: keyPair.publicKey, // 32-byte
+    secretKey: truncatedSecretKey, // 32-byte private key
+    fullSecretKey: keyPair.secretKey, // Optional: for signing if needed
   };
 }
 
