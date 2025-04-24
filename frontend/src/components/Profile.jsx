@@ -9,7 +9,7 @@ const Profile = () => {
     username: "JohnDoe",
     email: "john.doe@example.com",
     public_key: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0vz5TcHQMFTLXQRMxmGI6zhnW1RUM6f",
-    avatar: null,
+    avatar: 'https://thumbs.dreamstime.com/b/arabic-business-man-traditional-muslim-hat-placeholder-102337208.jpg',
   };
 
   const [profile, setProfile] = useState(mockProfile);
@@ -71,7 +71,7 @@ const Profile = () => {
             <div className="relative  w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24">
               <div className="absolute inset-0 -m-2 rounded-full border-[3px] border-blue-light"></div>
               <img
-                src={profile.avatar || "default-avatar.png"}
+                src={profile.avatar || "'https://thumbs.dreamstime.com/b/arabic-business-man-traditional-muslim-hat-placeholder-102337208.jpg'"}
                 alt="Profile"
                 className="w-24 h-24 rounded-full border-[3px] border-none"
               />

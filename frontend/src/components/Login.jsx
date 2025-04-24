@@ -14,6 +14,20 @@ const Login = () => {
   const navigate = useNavigate();
 
   const handleLogin = async () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setErrorMessage("Please enter a valid email address.");
+      return;
+    }
+
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[-])[A-Za-z\d-]{6,}$/;
+    if (!passwordRegex.test(password)) {
+      setErrorMessage(
+        "Password must be 6+ characters with uppercase, lowercase, number, and '-'"
+      );
+      return;
+    }
     if (!email || !password) {
       setErrorMessage("Please enter email and password.");
       return;

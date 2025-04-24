@@ -13,7 +13,7 @@ const Chat = () => {
       name: "Lauren Shaw",
       lastMessage: "Good night, babe ❤️",
       time: "11:56 PM",
-      avatar: null,
+       avatar: 'https://thumbs.dreamstime.com/b/arabic-business-man-traditional-muslim-hat-placeholder-102337208.jpg',
     },
   ];
 
