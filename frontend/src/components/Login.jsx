@@ -3,8 +3,6 @@ import Logo from "../assets/Logo";
 import { Link, useNavigate } from "react-router-dom";
 import { EyeOn, EyeOff } from "../assets/Visibility";
 import { LoginBG } from "../assets/LoginBG";
-import { decryptPrivateKey } from "../utils/privateKeyUtils";
-import { getEncryptedPrivateKey } from "../utils/storageUtils";
 import { loginUser } from "../api/api";
 
 const Login = () => {
@@ -12,7 +10,6 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [_, setPrivateKey] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -35,48 +32,48 @@ const Login = () => {
       console.log("Login successful:", loginResponse);
 
       // Explicitly store token in localStorage
-      if (loginResponse && loginResponse.token) {
-        localStorage.setItem('token', loginResponse.token);
-        console.log("Token stored directly in Login component:", loginResponse.token);
-        
-        if (loginResponse.refresh_token) {
-          localStorage.setItem('refreshToken', loginResponse.refresh_token);
-        }
-        
-        // Create a basic user object if none exists
-        const basicUserData = {
-          username: email,
-          email: email,
-          public_key: localStorage.getItem('publicKey') || ""
-        };
-        
-        localStorage.setItem('user', JSON.stringify(basicUserData));
-        console.log("Basic user data stored:", basicUserData);
-      }
+      // if (loginResponse && loginResponse.token) {
+      //   localStorage.setItem('token', loginResponse.token);
+      //   console.log("Token stored directly in Login component:", loginResponse.token);
 
-      // Get Encrypted Private Key from Browser Storage
-      const { encryptedPrivateKey, salt } = await getEncryptedPrivateKey();
+      //   if (loginResponse.refresh_token) {
+      //     localStorage.setItem('refreshToken', loginResponse.refresh_token);
+      //   }
 
-      if (!encryptedPrivateKey) {
-        setErrorMessage("No private key found for this user.");
-        return;
-      }
+      //   // Create a basic user object if none exists
+      //   const basicUserData = {
+      //     username: email,
+      //     email: email,
+      //     public_key: localStorage.getItem('publicKey') || ""
+      //   };
 
-      // Decrypt Private Key using Password
-      const privateKey = await decryptPrivateKey(
-        encryptedPrivateKey,
-        salt,
-        password
-      );
+      //   localStorage.setItem('user', JSON.stringify(basicUserData));
+      //   console.log("Basic user data stored:", basicUserData);
+      // }
 
-      if (!privateKey) {
-        throw new Error("Private key is invalid.");
-      }
+      // // Get Encrypted Private Key from Browser Storage
+      // const { encryptedPrivateKey, salt } = await getEncryptedPrivateKey();
 
-      setPrivateKey(privateKey);
-      
+      // if (!encryptedPrivateKey) {
+      //   setErrorMessage("No private key found for this user.");
+      //   return;
+      // }
+
+      // // Decrypt Private Key using Password
+      // const privateKey = await decryptPrivateKey(
+      //   encryptedPrivateKey,
+      //   salt,
+      //   password
+      // );
+
+      // if (!privateKey) {
+      //   throw new Error("Private key is invalid.");
+      // }
+
+      // setPrivateKey(privateKey);
+
       // Navigate to chat page after successful login
-      navigate('/chat');
+      navigate("/chat");
     } catch (error) {
       console.error("Login failed:", error);
       setErrorMessage("Invalid email or password. Please try again.");
