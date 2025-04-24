@@ -113,6 +113,7 @@ const refreshToken = async () => {
   } catch (error) {
     if (error.response.status === 403) {
       console.log("User not authenticated or no friends found.");
+      window.location.href = "/login";
       return [];
     }
     console.error("Error fetching contacts:", error);

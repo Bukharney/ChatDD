@@ -18,6 +18,7 @@ const ChatBox = ({ contact, currentUser }) => {
   const ws = useRef(null);
   const bottomRef = useRef(null);
   const keypair = useRef(null);
+  const [chatReady, setChatReady] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -59,9 +60,7 @@ const ChatBox = ({ contact, currentUser }) => {
     };
     console.log("Generated public key:", encodeBase64(publicKey));
     console.log("Generated private key:", encodeBase64(secretKey));
-  }, []);
 
-  useEffect(() => {
     ws.current = new WebSocket("ws://localhost:8080/ws");
 
     ws.current.onopen = () => {
@@ -73,8 +72,6 @@ const ChatBox = ({ contact, currentUser }) => {
           content: "request",
         })
       );
-      // delay for 1 second to simulate network latency
-      setTimeout(() => {}, 1000);
     };
 
     ws.current.onmessage = async (event) => {
@@ -105,7 +102,7 @@ const ChatBox = ({ contact, currentUser }) => {
     return () => {
       ws.current.close();
     };
-  }, []);
+  }, [contact, currentUser]);
 
   const handleHandshake = (msg) => {
     if (msg.content === "request") {
@@ -128,8 +125,9 @@ const ChatBox = ({ contact, currentUser }) => {
       );
     } else if (msg.content === "key-exchange") {
       sendPublicKey(ws.current, currentUser, contact, keypair.current, true);
-    } else if (msg.content == "Chat ready") {
+    } else if (msg.content == "chat-ready") {
       console.log("Chat is ready to send messages.");
+      setChatReady(true);
     }
   };
 
@@ -156,14 +154,7 @@ const ChatBox = ({ contact, currentUser }) => {
     }
   }
 
-  async function handleKeyExchange(
-    msg,
-    ws,
-    keypair,
-    contact,
-    currentUser,
-    setMessages
-  ) {
+  async function handleKeyExchange(msg, ws, keypair, contact, currentUser) {
     if (!msg.public_key) {
       console.warn(
         "Received key exchange request but no public key. Sending mine..."
@@ -212,17 +203,7 @@ const ChatBox = ({ contact, currentUser }) => {
           })
         );
 
-        console.log("Chat is ready to send messages.");
-
-        setMessages((prev) => [
-          ...prev,
-          {
-            from: currentUser.user_id,
-            to: contact.id,
-            content: "Chat ready.",
-            type: "message",
-          },
-        ]);
+        setChatReady(true);
       }
     } catch (err) {
       console.error("Error during key exchange:", err);
@@ -276,6 +257,7 @@ const ChatBox = ({ contact, currentUser }) => {
           to: msg.to,
           content: decryptedText,
           type: "message",
+          timestamp: msg.timestamp,
         },
       ]);
     } catch (err) {
@@ -303,21 +285,63 @@ const ChatBox = ({ contact, currentUser }) => {
     return nacl.scalarMult(privateKey, peerPublicKey);
   }
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (inputMessage.trim() === "") return;
 
     const newMessage = {
       from: currentUser.user_id,
       to: contact.id,
-      type: "text",
+      type: "message",
       content: inputMessage,
       timestamp: new Date().toISOString(),
     };
-
     setMessages((prev) => [...prev, newMessage]);
-    ws.current.send(JSON.stringify(newMessage));
+
+    const Message = {
+      from: currentUser.user_id,
+      to: contact.id,
+      type: "message",
+      content: await encryptMessage(inputMessage),
+      timestamp: new Date(),
+    };
+
+    ws.current.send(JSON.stringify(Message));
     setInputMessage("");
   };
+
+  async function encryptMessage(plainText) {
+    const nonce = crypto.getRandomValues(new Uint8Array(12));
+    const encoder = new TextEncoder();
+    const encodedText = encoder.encode(plainText);
+
+    const cryptoKey = await crypto.subtle.importKey(
+      "raw",
+      keypair.current.aesKey,
+      { name: "AES-GCM" },
+      false,
+      ["encrypt"]
+    );
+
+    console.log("Crypto key imported for encryption:", cryptoKey);
+
+    const encryptedBuffer = await crypto.subtle.encrypt(
+      { name: "AES-GCM", iv: nonce },
+      cryptoKey,
+      encodedText
+    );
+
+    console.log("Encrypted buffer:", encryptedBuffer);
+
+    const ciphertext = new Uint8Array(encryptedBuffer);
+
+    // Combine nonce + ciphertext
+    const combined = new Uint8Array(nonce.length + ciphertext.length);
+    combined.set(nonce, 0);
+    combined.set(ciphertext, nonce.length);
+
+    // Base64 encode
+    return encodeBase64(combined);
+  }
 
   return (
     <div className="flex flex-col h-full text-white justify-between">
@@ -352,40 +376,52 @@ const ChatBox = ({ contact, currentUser }) => {
         </div>
       </div>
       <div className="p-4 lg:p-6 text-xs lg:text-sm">
-        <div className="flex-1 max-h-[calc(100vh-14.75rem)] min-h-[calc(100vh-14.75rem)] lg:max-h-[calc(100vh-17rem)] lg:min-h-[calc(100vh-17rem)] overflow-y-auto scrollbar-hide flex flex-col">
-          {messages.map((message, index) => {
-            const showTimestamp =
-              index === 0 || messages[index - 1].from !== message.from;
-            return (
-              <div key={index} className="flex flex-col">
-                {showTimestamp && (
+        {chatReady ? (
+          <div className="flex-1 max-h-[calc(100vh-14.75rem)] min-h-[calc(100vh-14.75rem)] lg:max-h-[calc(100vh-17rem)] lg:min-h-[calc(100vh-17rem)] overflow-y-auto scrollbar-hide flex flex-col">
+            {messages.map((message, index) => {
+              const showTimestamp =
+                index === 0 || messages[index - 1].from !== message.from;
+              return (
+                <div key={index} className="flex flex-col">
+                  {showTimestamp && (
+                    <div
+                      className={`text-2xs lg:text-xs text-gray mb-2 ${
+                        message.from !== contact.id
+                          ? "self-end text-right"
+                          : "self-start text-left"
+                      }`}
+                    >
+                      {formatTimestamp(message.timestamp, message.from)}
+                    </div>
+                  )}
                   <div
-                    className={`text-2xs lg:text-xs text-gray mb-2 ${
+                    className={`p-2 rounded-lg text-xs lg:text-sm mb-3 ${
                       message.from !== contact.id
-                        ? "self-end text-right"
-                        : "self-start text-left"
+                        ? "bg-dark-gray self-end"
+                        : "bg-gradient-to-r from-blue to-blue-dark self-start"
                     }`}
                   >
-                    {formatTimestamp(message.timestamp, message.from)}
+                    <p>{message.content}</p>
                   </div>
-                )}
-                <div
-                  className={`p-2 rounded-lg text-xs lg:text-sm mb-3 ${
-                    message.from !== contact.id
-                      ? "bg-dark-gray self-end"
-                      : "bg-gradient-to-r from-blue to-blue-dark self-start"
-                  }`}
-                >
-                  <p>{message.content}</p>
                 </div>
-              </div>
-            );
-          })}
-          <div ref={bottomRef} />
-        </div>
+              );
+            })}
+            <div ref={bottomRef} />
+          </div>
+        ) : (
+          <div className="flex-1 max-h-[calc(100vh-14.75rem)] min-h-[calc(100vh-14.75rem)] lg:max-h-[calc(100vh-17rem)] lg:min-h-[calc(100vh-17rem)] overflow-y-auto scrollbar-hide flex items-center justify-center">
+            <p className="text-gray text-xs lg:text-sm">
+              Waiting for chat to be ready...
+              <br />
+              Please ensure both users are online and have accepted the chat.
+              <br />
+            </p>
+          </div>
+        )}
 
         <div className="p-2 bg-black rounded-xl flex flex-row gap-3 mt-4 items-center ">
           <input
+            disabled={!chatReady}
             type="text"
             className="w-full p-3 bg-black border-none outline-none rounded-xl text-white placeholder-gray focus:outline-none focus:ring-1 focus:ring-blue focus:border-transparent"
             placeholder="Type your message..."
