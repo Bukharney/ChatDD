@@ -53,7 +53,7 @@ func (a *AuthController) Login(c *gin.Context) {
 		HttpOnly: true,
 		Path:     "/",
 		Secure:   false,
-		SameSite: http.SameSiteNoneMode,
+		SameSite: http.SameSiteLaxMode,
 	})
 
 	http.SetCookie(c.Writer, &http.Cookie{
@@ -62,7 +62,7 @@ func (a *AuthController) Login(c *gin.Context) {
 		HttpOnly: true,
 		Path:     "/v1/auth/refresh-token",
 		Secure:   false,
-		SameSite: http.SameSiteNoneMode,
+		SameSite: http.SameSiteLaxMode,
 	})
 
 	c.JSON(http.StatusOK, gin.H{
@@ -106,7 +106,7 @@ func (a *AuthController) RefreshToken(c *gin.Context) {
 		HttpOnly: true,
 		Path:     "/",
 		Secure:   false,
-		SameSite: http.SameSiteNoneMode,
+		SameSite: http.SameSiteLaxMode,
 	})
 
 	c.JSON(http.StatusOK, gin.H{

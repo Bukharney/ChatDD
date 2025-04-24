@@ -3,9 +3,11 @@ import { useLocation } from "react-router-dom";
 import ChatBox from "./ChatBox";
 import Contacts from "./Contacts";
 import Logo from "../../assets/Logo";
-import contacts from "../../data/chatData.json";
+import { getFriends, getUser } from "../../api/api";
 
 const Chat = () => {
+  const [currentUser, setCurrentUser] = useState(null);
+  const [contacts, setContacts] = useState([]);
   const [selectedContact, setSelectedContact] = useState(null);
   const location = useLocation();
 
@@ -14,6 +16,26 @@ const Chat = () => {
   };
 
   useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await getUser();
+        setCurrentUser(response);
+        console.log("User fetched:", response);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    };
+
+    const fetchContacts = async () => {
+      try {
+        const response = await getFriends();
+        setContacts(response);
+        console.log("Contacts fetched:", response);
+      } catch (error) {
+        console.error("Error fetching contacts:", error);
+      }
+    };
+
     const updateContactFromQuery = () => {
       const queryParams = new URLSearchParams(location.search);
       const id = queryParams.get("id");
@@ -25,8 +47,10 @@ const Chat = () => {
       }
     };
 
+    fetchUser();
+    fetchContacts();
     updateContactFromQuery();
-  }, [location]);
+  }, []);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 h-full w-full">
@@ -37,7 +61,11 @@ const Chat = () => {
             : "block lg:col-span-1"
         }`}
       >
-        <Contacts contacts={contacts} handleSelectContact={handleSelectContact} selectedContact={selectedContact} />
+        <Contacts
+          contacts={contacts}
+          handleSelectContact={handleSelectContact}
+          selectedContact={selectedContact}
+        />
       </div>
       <div
         className={`lg:col-span-3 ${
@@ -45,7 +73,7 @@ const Chat = () => {
         }`}
       >
         {selectedContact ? (
-          <ChatBox contact={selectedContact} />
+          <ChatBox contact={selectedContact} currentUser={currentUser} />
         ) : (
           <div className="flex flex-col items-center justify-center h-[80vh] w-full lg:hidden">
             <Contacts

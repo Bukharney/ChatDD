@@ -1,9 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Search from "../../assets/Search";
-import AddContact from "../modal/addContact"; 
+import AddContact from "../modal/addContact";
 
-const Contacts = ({ contacts, handleSelectContact, selectedContact, addContact }) => {
+const Contacts = ({
+  contacts,
+  handleSelectContact,
+  selectedContact,
+  addContact,
+}) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showModal, setShowModal] = useState(false);
@@ -18,28 +23,28 @@ const Contacts = ({ contacts, handleSelectContact, selectedContact, addContact }
       .join("");
   };
 
-  const formatTime = (time) => {
-    const date = new Date(time);
-    const today = new Date();
-    if (
-      date.getDate() === today.getDate() &&
-      date.getMonth() === today.getMonth() &&
-      date.getFullYear() === today.getFullYear()
-    ) {
-      return date.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    }
-    if (
-      date.getDate() === today.getDate() - 1 &&
-      date.getMonth() === today.getMonth() &&
-      date.getFullYear() === today.getFullYear()
-    ) {
-      return "Yesterday";
-    }
-    return `${date.getDate()}/${date.getMonth() + 1}`;
-  };
+  // const formatTime = (time) => {
+  //   const date = new Date(time);
+  //   const today = new Date();
+  //   if (
+  //     date.getDate() === today.getDate() &&
+  //     date.getMonth() === today.getMonth() &&
+  //     date.getFullYear() === today.getFullYear()
+  //   ) {
+  //     return date.toLocaleTimeString([], {
+  //       hour: "2-digit",
+  //       minute: "2-digit",
+  //     });
+  //   }
+  //   if (
+  //     date.getDate() === today.getDate() - 1 &&
+  //     date.getMonth() === today.getMonth() &&
+  //     date.getFullYear() === today.getFullYear()
+  //   ) {
+  //     return "Yesterday";
+  //   }
+  //   return `${date.getDate()}/${date.getMonth() + 1}`;
+  // };
 
   const handleContactClick = (contact) => {
     handleSelectContact(contact);
@@ -53,9 +58,9 @@ const Contacts = ({ contacts, handleSelectContact, selectedContact, addContact }
       lastMessage: "",
       timestamp: new Date().toISOString(),
       avatar: null,
-      isActive: false
+      isActive: false,
     };
-    
+
     addContact(newContact);
     setShowModal(false);
   };
@@ -72,7 +77,7 @@ const Contacts = ({ contacts, handleSelectContact, selectedContact, addContact }
             />
             <Search className="cursor-pointer w-6 h-6 text-white" />
           </div>
-          <button 
+          <button
             className="bg-black rounded-lg flex items-center justify-center aspect-square h-full hover:border hover:border-dark-gray"
             onClick={() => setShowModal(true)}
           >
@@ -85,7 +90,8 @@ const Contacts = ({ contacts, handleSelectContact, selectedContact, addContact }
             <div
               key={contact.id}
               className={`flex items-center p-4 cursor-pointer ${
-                (selectedContact && selectedContact.id === contact.id) || idFromUrl === contact.id
+                (selectedContact && selectedContact.id === contact.id) ||
+                idFromUrl === contact.id
                   ? "bg-dark-gray"
                   : "hover:bg-dark-gray hover:bg-opacity-50"
               }`}
@@ -96,26 +102,26 @@ const Contacts = ({ contacts, handleSelectContact, selectedContact, addContact }
                   {contact.avatar ? (
                     <img
                       src={contact.avatar}
-                      alt={contact.name}
+                      alt={contact.username}
                       className="w-full h-full rounded-full"
                     />
                   ) : (
-                    <span>{getInitials(contact.name)}</span>
+                    <span>{getInitials(contact.username)}</span>
                   )}
                 </div>
               </div>
               <div className="ml-3 flex-1">
                 <div className="flex justify-between">
                   <p className="font-medium text-white test-xs lg:text-sm">
-                    {contact.name}
+                    {contact.username}
                   </p>
-                  <p className="text-2xs lg:text-xs text-gray">
+                  {/* <p className="text-2xs lg:text-xs text-gray">
                     {formatTime(contact.timestamp)}
-                  </p>
+                  </p> */}
                 </div>
-                <p className="text-2xs lg:text-xs text-gray truncate">
+                {/* <p className="text-2xs lg:text-xs text-gray truncate">
                   {contact.lastMessage}
-                </p>
+                </p> */}
               </div>
             </div>
           ))}
@@ -123,8 +129,8 @@ const Contacts = ({ contacts, handleSelectContact, selectedContact, addContact }
       </div>
 
       {showModal && (
-        <AddContact 
-          onClose={() => setShowModal(false)} 
+        <AddContact
+          onClose={() => setShowModal(false)}
           onConfirm={handleAddContact}
         />
       )}

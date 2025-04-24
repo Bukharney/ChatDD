@@ -59,12 +59,14 @@ func main() {
 		log.Fatalf("WebSocket connection failed: %v", err)
 	}
 	defer conn.Close()
+	log.Println("WebSocket connection established.")
 
 	client := &ChatClient{User: user, Recipient: recipient, Conn: conn}
 	client.initialize()
 }
 
 func (c *ChatClient) initialize() {
+	log.Println("Initializing chat client...")
 	if err := c.generateKeyPair(); err != nil {
 		log.Fatal("Key generation failed:", err)
 	}
@@ -73,6 +75,7 @@ func (c *ChatClient) initialize() {
 		log.Fatal("Failed to send handshake:", err)
 	}
 
+	log.Println("Handshake sent. Waiting for response...")
 	c.messageLoop()
 }
 
@@ -120,16 +123,32 @@ func (c *ChatClient) generateKeyPair() error {
 		log.Println("Failed to generate salt:", err)
 		return err
 	}
+	log.Println("Generated key pair and salt.")
+	log.Println("Public key:", base64.StdEncoding.EncodeToString(publicKey))
+	log.Println("Private key:", base64.StdEncoding.EncodeToString(privateKey))
+	log.Println("Salt:", base64.StdEncoding.EncodeToString(salt))
 	c.PublicKey, c.PrivateKey, c.Salt = publicKey, privateKey, salt
 	return nil
 }
 
-func (c *ChatClient) sendPublicKey() error {
-	err := c.Conn.WriteJSON(Message{
-		Type:      "key-exchange",
-		To:        c.Recipient,
-		PublicKey: base64.StdEncoding.EncodeToString(c.PublicKey),
-	})
+func (c *ChatClient) sendPublicKey(salt bool) error {
+	msg := Message{}
+	if salt {
+		msg = Message{
+			Type:      "key-exchange",
+			To:        c.Recipient,
+			PublicKey: base64.StdEncoding.EncodeToString(c.PublicKey),
+			Salt:      base64.StdEncoding.EncodeToString(c.Salt),
+		}
+	} else {
+		msg = Message{
+			Type:      "key-exchange",
+			To:        c.Recipient,
+			PublicKey: base64.StdEncoding.EncodeToString(c.PublicKey),
+		}
+	}
+	err := c.Conn.WriteJSON(msg)
+	log.Println("Public key sent:", base64.StdEncoding.EncodeToString(c.PublicKey))
 	if err == nil {
 		c.sentPublicKey = true
 	}
@@ -199,7 +218,7 @@ func (c *ChatClient) messageLoop() {
 func (c *ChatClient) handleKeyExchange(msg Message) {
 	if msg.PublicKey == "" {
 		log.Println("Received key exchange request but no public key. Sending mine...")
-		if err := c.sendPublicKey(); err != nil {
+		if err := c.sendPublicKey(true); err != nil {
 			log.Println("Failed to send public key:", err)
 		}
 		return
@@ -211,13 +230,13 @@ func (c *ChatClient) handleKeyExchange(msg Message) {
 	}
 
 	log.Println("Received public key from", msg.From)
-
+	log.Println("Peer public key:", base64.StdEncoding.EncodeToString(peerPublicKey))
 	// Store peer's public key
 	c.peerPublicKey = peerPublicKey
 
 	// Ensure we also sent ours
 	if !c.sentPublicKey {
-		if err := c.sendPublicKey(); err != nil {
+		if err := c.sendPublicKey(false); err != nil {
 			log.Println("Failed to send public key:", err)
 			return
 		}
@@ -229,7 +248,15 @@ func (c *ChatClient) handleKeyExchange(msg Message) {
 			log.Println("Error computing shared secret:", err)
 			return
 		}
-		saltByte, err := base64.StdEncoding.DecodeString(msg.Salt)
+		log.Println("Shared secret: ", base64.StdEncoding.EncodeToString(sharedSecret))
+		salt := ""
+		if msg.Salt == "" {
+			salt = base64.StdEncoding.EncodeToString(c.Salt)
+		} else {
+			salt = msg.Salt
+		}
+		log.Println("Salt: ", salt)
+		saltByte, err := base64.StdEncoding.DecodeString(salt)
 		if err != nil {
 			log.Println("Invalid salt received:", err)
 			return
@@ -239,6 +266,7 @@ func (c *ChatClient) handleKeyExchange(msg Message) {
 			log.Println("Failed to derive AES key:", err)
 			return
 		}
+		log.Println("AES: ", base64.StdEncoding.EncodeToString(c.AESKey))
 		log.Println("AES key established with", msg.From)
 		// Confirm chat is ready
 		err = c.sendHandshake("chat-ready")
@@ -279,8 +307,7 @@ func (c *ChatClient) handleHandshake(msg Message) {
 		log.Println("Handshake accepted by", msg.From)
 	case "key-exchange":
 		log.Println("Key exchange requested by", msg.From)
-
-		if err := c.sendPublicKey(); err != nil {
+		if err := c.sendPublicKey(true); err != nil {
 			log.Println("Failed to send public key:", err)
 			return
 		}

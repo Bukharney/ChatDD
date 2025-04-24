@@ -16,6 +16,7 @@ type Message struct {
 	From      string `json:"from"`
 	To        string `json:"to"`
 	PublicKey string `json:"public_key,omitempty"`
+	Salt      string `json:"salt,omitempty"`
 	Content   string `json:"content,omitempty"`
 }
 

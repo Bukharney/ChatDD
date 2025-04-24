@@ -1,29 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { Camera, File, Send, Search } from '../assets/ChatBoxAsset';
+import React, { useState, useEffect } from "react";
+import { Camera, File, Send, Search } from "../assets/ChatBoxAsset";
 
 const Chat = () => {
   const [currentContact, setCurrentContact] = useState(null);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  // Sample contact data
+  // Sample contacts data
   const contacts = [
     {
       id: 1,
-      name: 'Lauren',
-      lastMessage: 'Hey babe, I miss you',
-      time: '11:35 PM',
+      name: "Lauren Shaw",
+      lastMessage: "Good night, babe ❤️",
+      time: "11:56 PM",
       avatar: null,
-      isActive: false
     },
-    {
-      id: 2,
-      name: 'Layla',
-      lastMessage: 'Babe, Where are you ?',
-      time: '9:45 PM',
-      avatar: null,
-      isActive: true
-    }
   ];
 
   // Sample conversations data - map of contact ID to their messages
@@ -31,141 +22,143 @@ const Chat = () => {
     1: [
       {
         id: 1,
-        sender: 'me',
-        content: 'Hey Lauren, how are you?',
-        time: '9:10 AM'
+        sender: "me",
+        content: "Hey Lauren, how are you?",
+        time: "9:10 AM",
       },
       {
         id: 2,
-        sender: 'other',
-        content: 'Hey babe, I miss you',
-        time: '11:35 PM'
+        sender: "other",
+        content: "Hey babe, I miss you",
+        time: "11:35 PM",
       },
       {
         id: 3,
-        sender: 'me',
-        content: 'Aww, I miss you too! How was your day?',
-        time: '11:37 PM'
+        sender: "me",
+        content: "Aww, I miss you too! How was your day?",
+        time: "11:37 PM",
       },
       {
         id: 4,
-        sender: 'other',
-        content: 'It was okay, just busy with work. What about you?',
-        time: '11:40 PM'
+        sender: "other",
+        content: "It was okay, just busy with work. What about you?",
+        time: "11:40 PM",
       },
       {
         id: 5,
-        sender: 'me',
-        content: 'Same here, just had a lot of meetings. Can’t wait for the weekend!',
-        time: '11:42 PM'
+        sender: "me",
+        content:
+          "Same here, just had a lot of meetings. Can’t wait for the weekend!",
+        time: "11:42 PM",
       },
       {
         id: 6,
-        sender: 'other',
-        content: 'Yeah, me too! Let’s plan something fun.',
-        time: '11:45 PM'
+        sender: "other",
+        content: "Yeah, me too! Let’s plan something fun.",
+        time: "11:45 PM",
       },
       {
         id: 7,
-        sender: 'me',
-        content: 'How about a movie night and dinner?',
-        time: '11:47 PM'
+        sender: "me",
+        content: "How about a movie night and dinner?",
+        time: "11:47 PM",
       },
       {
         id: 8,
-        sender: 'other',
-        content: 'Sounds perfect! I’ll pick the movie 😆',
-        time: '11:50 PM'
+        sender: "other",
+        content: "Sounds perfect! I’ll pick the movie 😆",
+        time: "11:50 PM",
       },
       {
         id: 9,
-        sender: 'me',
-        content: 'Haha, fine! But no horror movies this time! 😅',
-        time: '11:52 PM'
+        sender: "me",
+        content: "Haha, fine! But no horror movies this time! 😅",
+        time: "11:52 PM",
       },
       {
         id: 10,
-        sender: 'other',
-        content: 'Deal! 😂 Sleep well, love ❤️',
-        time: '11:55 PM'
+        sender: "other",
+        content: "Deal! 😂 Sleep well, love ❤️",
+        time: "11:55 PM",
       },
       {
         id: 11,
-        sender: 'me',
-        content: 'Good night, babe ❤️',
-        time: '11:56 PM'
-      }
+        sender: "me",
+        content: "Good night, babe ❤️",
+        time: "11:56 PM",
+      },
     ],
     2: [
       {
         id: 1,
-        sender: 'me',
-        content: 'Good morning my dear',
-        time: '9:15 AM'
+        sender: "me",
+        content: "Good morning my dear",
+        time: "9:15 AM",
       },
       {
         id: 2,
-        sender: 'other',
-        content: 'Good morning my dear ❤️',
-        time: '9:15 AM'
+        sender: "other",
+        content: "Good morning my dear ❤️",
+        time: "9:15 AM",
       },
       {
         id: 3,
-        sender: 'other',
+        sender: "other",
         content: "What's your plan for today?",
-        time: '9:16 AM'
+        time: "9:16 AM",
       },
       {
         id: 4,
-        sender: 'me',
-        content: 'Just work and a gym session later. What about you?',
-        time: '9:18 AM'
+        sender: "me",
+        content: "Just work and a gym session later. What about you?",
+        time: "9:18 AM",
       },
       {
         id: 5,
-        sender: 'other',
-        content: 'Same here. I have a few meetings and then probably some Netflix in the evening.',
-        time: '9:20 AM'
+        sender: "other",
+        content:
+          "Same here. I have a few meetings and then probably some Netflix in the evening.",
+        time: "9:20 AM",
       },
       {
         id: 6,
-        sender: 'me',
-        content: 'That sounds nice! What are you watching?',
-        time: '9:22 AM'
+        sender: "me",
+        content: "That sounds nice! What are you watching?",
+        time: "9:22 AM",
       },
       {
         id: 7,
-        sender: 'other',
-        content: 'Started a new crime series, it’s so intense!',
-        time: '9:24 AM'
+        sender: "other",
+        content: "Started a new crime series, it’s so intense!",
+        time: "9:24 AM",
       },
       {
         id: 8,
-        sender: 'me',
-        content: 'Ooo, I love crime shows! Maybe we can watch together later?',
-        time: '9:26 AM'
+        sender: "me",
+        content: "Ooo, I love crime shows! Maybe we can watch together later?",
+        time: "9:26 AM",
       },
       {
         id: 9,
-        sender: 'other',
-        content: 'Yes, let’s do that! I’ll wait for you 😊',
-        time: '9:28 AM'
+        sender: "other",
+        content: "Yes, let’s do that! I’ll wait for you 😊",
+        time: "9:28 AM",
       },
       {
         id: 10,
-        sender: 'me',
-        content: 'Yay! Alright, I need to get ready for work now. Have a great day!',
-        time: '9:30 AM'
+        sender: "me",
+        content:
+          "Yay! Alright, I need to get ready for work now. Have a great day!",
+        time: "9:30 AM",
       },
       {
         id: 11,
-        sender: 'other',
-        content: 'You too, love! Talk later 😘',
-        time: '9:32 AM'
-      }
-    ]
+        sender: "other",
+        content: "You too, love! Talk later 😘",
+        time: "9:32 AM",
+      },
+    ],
   };
-
 
   // Get messages for the current contact
   const getCurrentMessages = () => {
@@ -175,7 +168,11 @@ const Chat = () => {
 
   // Create avatar placeholder with initials
   const getInitials = (name) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
   };
 
   const handleSelectContact = (contact) => {
@@ -196,8 +193,8 @@ const Chat = () => {
       setIsMobile(window.innerWidth < 768);
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   // Listen for the custom back button event from Layout component
@@ -210,11 +207,14 @@ const Chat = () => {
     };
 
     // Add event listener for our custom event
-    window.addEventListener('chatBackButtonClicked', handleLayoutBackButton);
+    window.addEventListener("chatBackButtonClicked", handleLayoutBackButton);
 
     // Clean up the event listener when component unmounts
     return () => {
-      window.removeEventListener('chatBackButtonClicked', handleLayoutBackButton);
+      window.removeEventListener(
+        "chatBackButtonClicked",
+        handleLayoutBackButton
+      );
     };
   }, [currentContact, isMobile, handleBack]);
 
@@ -222,7 +222,11 @@ const Chat = () => {
     <div className="h-full flex bg-black text-white">
       {/*Contact List Section */}
       {shouldShowContacts && (
-        <div className={`${isMobile ? 'w-full' : 'w-1/3'} border-r border-dark-gray flex flex-col h-full overflow-hidden`}>
+        <div
+          className={`${
+            isMobile ? "w-full" : "w-1/3"
+          } border-r border-dark-gray flex flex-col h-full overflow-hidden`}
+        >
           {/* Search Input */}
           <div className="flex-none px-4 py-3">
             <div className="flex items-center bg-dark-gray rounded-full px-4 py-2">
@@ -237,7 +241,7 @@ const Chat = () => {
 
           {/* Contact List */}
           <div className="flex-1 overflow-y-auto">
-            {contacts.map(contact => (
+            {contacts.map((contact) => (
               <div
                 key={contact.id}
                 className="flex items-center p-4 hover:bg-dark-gray cursor-pointer"
@@ -246,7 +250,11 @@ const Chat = () => {
                 <div className="relative">
                   <div className="w-10 h-10 rounded-full bg-dark-gray flex items-center justify-center">
                     {contact.avatar ? (
-                      <img src={contact.avatar} alt={contact.name} className="w-full h-full rounded-full" />
+                      <img
+                        src={contact.avatar}
+                        alt={contact.name}
+                        className="w-full h-full rounded-full"
+                      />
                     ) : (
                       <span>{getInitials(contact.name)}</span>
                     )}
@@ -257,7 +265,9 @@ const Chat = () => {
                     <p className="font-medium">{contact.name}</p>
                     <p className="text-xs text-gray">{contact.time}</p>
                   </div>
-                  <p className="text-sm text-gray truncate">{contact.lastMessage}</p>
+                  <p className="text-sm text-gray truncate">
+                    {contact.lastMessage}
+                  </p>
                 </div>
               </div>
             ))}
@@ -267,15 +277,21 @@ const Chat = () => {
 
       {/*Chat Conversation Window */}
       {shouldShowChat && (
-        <div className={`${isMobile ? 'w-full' : 'w-2/3'} flex flex-col h-full overflow-hidden`}>
+        <div
+          className={`${
+            isMobile ? "w-full" : "w-2/3"
+          } flex flex-col h-full overflow-hidden`}
+        >
           {/* Chat Header */}
           <div className="flex-none p-4 border-b border-dark-gray flex items-center">
             <div className="flex items-center flex-1">
               <div className="w-8 h-8 rounded-full bg-dark-gray flex items-center justify-center mr-3">
-                <span>{getInitials(currentContact?.name || 'Layla Shaw')}</span>
+                <span>{getInitials(currentContact?.name || "Layla Shaw")}</span>
               </div>
               <div>
-                <p className="font-medium">{currentContact?.name || 'Layla Shaw'}</p>
+                <p className="font-medium">
+                  {currentContact?.name || "Layla Shaw"}
+                </p>
                 <p className="text-xs text-gray">Active now</p>
               </div>
             </div>
@@ -287,21 +303,28 @@ const Chat = () => {
 
           {/* Messages Area */}
           <div className="flex-1 p-4 overflow-y-auto">
-            {getCurrentMessages().map(msg => (
+            {getCurrentMessages().map((msg) => (
               <div
                 key={msg.id}
-                className={`flex ${msg.sender === 'me' ? 'flex-col items-start' : 'flex-col items-end'}`}
+                className={`flex ${
+                  msg.sender === "me"
+                    ? "flex-col items-start"
+                    : "flex-col items-end"
+                }`}
               >
                 <div
-                  className={`max-w-xs px-4 py-2 rounded-2xl mb-2 ${msg.sender === 'me'
-                    ? 'bg-blue text-white rounded-bl-none'
-                    : 'bg-dark-gray text-white rounded-br-none'
-                    }`}
+                  className={`max-w-xs px-4 py-2 rounded-2xl mb-2 ${
+                    msg.sender === "me"
+                      ? "bg-blue text-white rounded-bl-none"
+                      : "bg-dark-gray text-white rounded-br-none"
+                  }`}
                 >
                   <p>{msg.content}</p>
                 </div>
                 <div className="text-xs text-gray mt-1 px-1 mb-2">
-                  {msg.sender === 'me' ? `${currentContact?.name || 'Layla'}, ${msg.time}` : `you, ${msg.time}`}
+                  {msg.sender === "me"
+                    ? `${currentContact?.name || "Layla"}, ${msg.time}`
+                    : `you, ${msg.time}`}
                 </div>
               </div>
             ))}
