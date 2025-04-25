@@ -41,6 +41,32 @@ DATABASE_URL=your-database-url
 JWT_SECRET=your-secret-key-64-characters-long
 ```
 
+## Running the Chat Client
+
+1. Navigate to the `backend/server/ws/client` directory:
+
+   ```bash
+   cd backend/server/ws/client
+   ```
+
+2. Create user accounts using http requests:
+
+   ```bash
+   curl -X POST http://localhost:8080/api/v1/users\
+   -H "Content-Type: application/json" \
+   -d '{"username": <username>, "email": <email>, "password": <password>}'
+   ```
+
+   Replace `<username>`, `<email>`, and `<password>` with the desired values.
+
+3. Run the client:
+
+   ```bash
+   go run client.go <username> <password> <recipient>
+   ```
+
+   Replace `<username>`, `<password>`, and `<recipient>` with the desired values.
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
