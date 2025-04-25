@@ -108,7 +108,7 @@ func (a *AuthUsecases) Logout(ctx context.Context, claims entities.UsersClaims) 
 }
 
 func (a *AuthUsecases) Me(ctx context.Context, claims entities.UsersClaims) (*entities.UsersDataRes, error) {
-	user, err := a.UserRepo.GetUserByEmail(ctx, claims.Username)
+	user, err := a.UserRepo.GetUserByEmail(ctx, claims.Email)
 	if err != nil {
 		return nil, errors.New("error, user not found")
 	}

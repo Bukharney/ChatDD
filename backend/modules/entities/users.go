@@ -47,6 +47,7 @@ type UsersDataRes struct {
 type UsersClaims struct {
 	Id       uuid.UUID `json:"user_id"`
 	Username string    `json:"username"`
+	Email    string    `json:"email"`
 	jwt.RegisteredClaims
 }
 

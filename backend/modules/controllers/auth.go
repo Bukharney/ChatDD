@@ -21,7 +21,7 @@ func NewAuthControllers(r gin.IRoutes, cfg *configs.Configs, authUsecase entitie
 		AuthUsecase: authUsecase,
 	}
 
-	r.POST("/login", controllers.Login)
+	r.POST("/login", middlewares.RateLimit(), controllers.Login)
 	r.GET("/auth-test", middlewares.JwtAuthentication(middlewares.AccessToken), controllers.AuthTest)
 	r.GET("/refresh-token", middlewares.JwtAuthentication(middlewares.RefreshToken), controllers.RefreshToken)
 	r.GET("/logout", middlewares.JwtAuthentication(middlewares.AccessToken), controllers.Logout)
@@ -161,6 +161,7 @@ func (a *AuthController) Me(c *gin.Context) {
 		})
 		return
 	}
+
 	res, err := a.AuthUsecase.Me(c.Request.Context(), *tk)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

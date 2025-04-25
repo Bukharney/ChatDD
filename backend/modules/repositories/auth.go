@@ -33,6 +33,7 @@ func (a *AuthRepo) GenerateAccessToken(req *entities.UsersPassport) (string, err
 	claims := &entities.UsersClaims{
 		Id:       req.Id,
 		Username: req.Username,
+		Email:    req.Email,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(5 * time.Minute)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -61,6 +62,7 @@ func (a *AuthRepo) GenerateRefreshToken(ctx context.Context, req *entities.Users
 	claims := &entities.UsersClaims{
 		Id:       req.Id,
 		Username: req.Username,
+		Email:    req.Email,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

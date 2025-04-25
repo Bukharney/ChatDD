@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"slices"
 
 	"github.com/bukharney/ChatDD/middlewares"
 	"github.com/bukharney/ChatDD/modules/entities"
@@ -15,7 +16,9 @@ var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
-		return true
+		origin := r.Header.Get("Origin")
+		log.Println("Origin: ", origin)
+		return slices.Contains([]string{"http://localhost:5173", "https://chatdd.bukharney.site"}, origin)
 	},
 }
 

@@ -15,7 +15,11 @@ const Chat = () => {
     setSelectedContact(contact);
   };
   const handleAddContact = (newContact) => {
-    setContacts((prevContacts) => [...prevContacts, newContact]);
+    if (contacts) {
+      setContacts((prevContacts) => [...prevContacts, newContact]);
+    } else {
+      setContacts([newContact]);
+    }
   };
 
   useEffect(() => {
@@ -33,7 +37,6 @@ const Chat = () => {
       try {
         const response = await getFriends();
         setContacts(response);
-
         console.log("Contacts fetched:", response);
       } catch (error) {
         console.error("Error fetching contacts:", error);

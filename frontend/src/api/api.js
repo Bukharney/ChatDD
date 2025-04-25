@@ -112,7 +112,7 @@ const findUserByEmail = async (email = "") => {
         withCredentials: true,
       }
     );
-    return response.data;
+    return response;
   } catch (error) {
     if (error.response.status === 403) {
       await refreshToken();
@@ -154,12 +154,8 @@ const refreshToken = async () => {
     });
     return response.data;
   } catch (error) {
-    if (error.response.status === 403) {
-      console.log("User not authenticated or no friends found.");
-      window.location.href = "/login";
-      return [];
-    }
-    console.error("Error fetching contacts:", error);
+    console.error("Error refreshing token:", error);
+    window.location.href = "/login";
   }
 };
 

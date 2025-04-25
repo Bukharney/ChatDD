@@ -2,10 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import DOMPurify from "dompurify";
 import { useLocation } from "react-router-dom";
 import chatData from "../../data/chatData.json";
-import Folder from "../../assets/Folder";
-import Camera from "../../assets/Camera";
 import Send from "../../assets/Send";
-import Search from "../../assets/Search";
 import SearchModal from "../modal/search";
 import hkdf from "@panva/hkdf"; // Make sure to install this with `npm install @panva/hkdf`
 import {
@@ -59,8 +56,6 @@ const ChatBox = ({ contact, currentUser }) => {
       sharedSecret: null,
       sentPublicKey: false,
     };
-    console.log("Generated public key:", encodeBase64(publicKey));
-    console.log("Generated private key:", encodeBase64(secretKey));
 
     ws.current = new WebSocket("ws://localhost:8080/ws");
 
@@ -68,7 +63,7 @@ const ChatBox = ({ contact, currentUser }) => {
       ws.current.send(
         JSON.stringify({
           type: "handshake",
-          from: currentUser.user_id,
+          from: currentUser.id,
           to: contact.id,
           content: "request",
         })
@@ -77,8 +72,7 @@ const ChatBox = ({ contact, currentUser }) => {
 
     ws.current.onmessage = async (event) => {
       const msg = JSON.parse(event.data);
-      console.log("Received message:", msg); // Already there
-      console.log("Message type:", msg.type); // Add this if missing
+      console.log("Received message:", msg);
 
       if (msg.type === "handshake") {
         handleHandshake(msg);
@@ -177,23 +171,16 @@ const ChatBox = ({ contact, currentUser }) => {
       }
 
       if (keypair.peerPublicKey && keypair.sentPublicKey) {
-        console.log("Peer public key:", encodeBase64(peerPublicKey));
-        console.log("Public key:", encodeBase64(keypair.publicKey));
-        console.log("Private key:", encodeBase64(keypair.secretKey));
         const sharedSecret = deriveSharedSecret(
           keypair.secretKey,
           peerPublicKey
         );
-        console.log("Shared secret derived:", encodeBase64(sharedSecret));
 
         const salt = msg.salt ? decodeBase64(msg.salt) : keypair.salt;
-        console.log("Salt:", encodeBase64(salt));
         const aesKey = await hkdf("sha256", sharedSecret, salt, "", 32);
 
         keypair.sharedSecret = sharedSecret;
         keypair.aesKey = aesKey;
-
-        console.log("AES key derived:", encodeBase64(aesKey));
 
         ws.send(
           JSON.stringify({
@@ -288,9 +275,9 @@ const ChatBox = ({ contact, currentUser }) => {
 
   const sendMessage = async () => {
     if (inputMessage.trim() === "") return;
-  
+
     const sanitizedMessage = DOMPurify.sanitize(inputMessage);
-  
+
     const newMessage = {
       from: currentUser.user_id,
       to: contact.id,
@@ -298,7 +285,7 @@ const ChatBox = ({ contact, currentUser }) => {
       content: sanitizedMessage,
       timestamp: new Date().toISOString(),
     };
- 
+
     setMessages((prev) => [...prev, newMessage]);
 
     const Message = {

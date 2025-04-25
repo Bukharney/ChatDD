@@ -12,8 +12,14 @@ const AddContact = ({ onClose, onConfirm }) => {
     setIsLoading(true);
     try {
       const response = await findUserByEmail(searchValue);
-      setUserProfile(response);
-      setIsProfileSelected(true);
+      console.log("User found:", response);
+      if (response.data) {
+        setUserProfile(response.data);
+        setIsProfileSelected(true);
+      } else {
+        setUserProfile(null);
+        setIsProfileSelected(false);
+      }
     } catch (error) {
       console.error("Adding contact failed:", error);
     }
@@ -64,11 +70,11 @@ const AddContact = ({ onClose, onConfirm }) => {
           <div className="flex flex-col items-center mb-6">
             <div className="w-20 h-20 rounded-full bg-gray-700 border-2 border-yellow flex items-center justify-center mb-2">
               <span className="text-white text-xl">
-                {userProfile.username.charAt(0).toUpperCase()}
+                {userProfile?.username.charAt(0).toUpperCase()}
               </span>
             </div>
             <span className="text-white text-sm lg:text-base">
-              {userProfile.username}
+              {userProfile?.username}
             </span>
           </div>
         )}

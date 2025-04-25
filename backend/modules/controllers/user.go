@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/bukharney/ChatDD/configs"
@@ -42,11 +41,6 @@ func (u *UsersController) Register(c *gin.Context) {
 		return
 	}
 
-	user := &entities.UsersCredentials{
-		Username: req.Username,
-		Password: req.Password,
-	}
-
 	res, err := u.UsersUsecase.Register(ctx, req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -54,17 +48,6 @@ func (u *UsersController) Register(c *gin.Context) {
 		})
 		return
 	}
-
-	token, err := u.AuthUsecase.Login(u.Cfg, ctx, user)
-	if err != nil {
-		log.Println(err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	res.AccessToken = token.AccessToken
 
 	c.JSON(http.StatusOK, res)
 }
@@ -107,6 +90,13 @@ func (u *UsersController) GetUserDetails(c *gin.Context) {
 
 	res, err := u.UsersUsecase.GetUserDetails(ctx, *user)
 	if err != nil {
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
@@ -122,6 +112,13 @@ func (u *UsersController) FindUser(c *gin.Context) {
 
 	res, err := u.UsersUsecase.GetUserByEmail(ctx, email)
 	if err != nil {
+
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})

@@ -57,13 +57,10 @@ const SignUp = () => {
     try {
       // IMPORTANT: Make email the same as username to work around backend issue
       // The backend tries to log in with username but looks up by email
-      const emailToUse = username;
-
-      // Create user with minimal required data
       const userData = {
-        username,
-        email: emailToUse, // Use username as email to work around backend issue
-        password,
+        username: username,
+        email: email,
+        password: password,
       };
 
       console.log("Sending registration data:", userData);
