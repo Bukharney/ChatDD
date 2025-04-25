@@ -43,13 +43,8 @@ JWT_SECRET=your-secret-key-64-characters-long
 
 ## Running the Chat Client
 
-1. Navigate to the `backend/server/ws/client` directory:
-
-   ```bash
-   cd backend/server/ws/client
-   ```
-
-2. Create user accounts using http requests:
+   
+1. Create user accounts using http requests:
 
    ```bash
    curl -X POST http://localhost:8080/api/v1/users\
@@ -59,13 +54,20 @@ JWT_SECRET=your-secret-key-64-characters-long
 
    Replace `<username>`, `<email>`, and `<password>` with the desired values.
 
+2. Navigate to the `backend/server/ws/client` directory:
+
+   ```bash
+   cd backend/server/ws/client
+   ```
+   
 3. Run the client:
 
    ```bash
    go run client.go <username> <password> <recipient>
    ```
 
-   Replace `<username>`, `<password>`, and `<recipient>` with the desired values.
+   Replace `<username>`, `<password>`, and `<recipient_user_id>` with the desired values.
+
 
 ## License
 
