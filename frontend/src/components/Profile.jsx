@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ChangePasswordModal from "../../src/components/modal/changePassword";
 import EditProfileModal from "../../src/components/modal/editProfile";
 import Pen from "../../src/assets/Pen";
+import { changePassword, getUser } from "../api/api";
 
 const Profile = () => {
   // Mock profile data
@@ -33,13 +34,34 @@ const Profile = () => {
 
   const handleChangePassword = async (passwordData) => {
     setLoading(true);
-    setTimeout(() => {
+    try {
+      await changePassword(
+        passwordData.new_password,
+        passwordData.old_password
+      );
       setIsChangingPassword(false);
       setSuccessMessage("Password changed successfully!");
-      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (error) {
+      setError("Error changing password. Please try again.");
+      console.error("Error changing password:", error);
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      // Simulate fetching profile data
+      setLoading(true);
+      const resp = await getUser();
+      console.log(resp);
+      setProfile(resp);
+      setError(resp.error || null);
+      setLoading(false);
+    };
+
+    fetchProfile();
+  }, []);
 
   return (
     <div className="flex flex-col p-6 text-white">
@@ -67,7 +89,7 @@ const Profile = () => {
         </div>
 
         <div className="space-y-4">
-          <div className="flex items-center mb-6 overflow-auto gap-x-6 p-2">
+          {/* <div className="flex items-center mb-6 overflow-auto gap-x-6 p-2">
             <div className="relative  w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24">
               <div className="absolute inset-0 -m-2 rounded-full border-[3px] border-blue-light"></div>
               <img
@@ -77,26 +99,20 @@ const Profile = () => {
               />
             </div>
             <div>
-              <h3 className="text-lg font-semibold">{profile.username}</h3>
-              <p className="text-gray">{profile.email}</p>
+              <h3 className="text-lg font-semibold">{profile?.username}</h3>
+              <p className="text-gray">{profile?.email}</p>
             </div>
-          </div>
+          </div> */}
 
           <div>
             <h4 className="text-sm font-medium text-gray mb-1">Username</h4>
-            <p className="text-white">{profile.username}</p>
+            <p className="text-white">{profile?.username}</p>
           </div>
 
           <div>
             <h4 className="text-sm font-medium text-gray mb-1">Email</h4>
-            <p className="text-white">{profile.email}</p>
+            <p className="text-white">{profile?.email}</p>
           </div>
-
-          <div>
-            <h4 className="text-sm font-medium text-gray mb-1">Public Key</h4>
-            <p className="text-white break-all">{profile.public_key}</p>
-          </div>
-
           <div className="pt-4">
             <button
               onClick={() => setIsChangingPassword(true)}

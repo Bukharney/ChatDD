@@ -28,7 +28,7 @@ func NewUsersControllers(r gin.IRoutes, usersUsecase entities.UsersUsecase, auth
 	r.POST("/", controllers.Register)
 	r.POST("/add-friend", middlewares.JwtAuthentication(middlewares.AccessToken), controllers.AddFriend)
 	r.DELETE("/", middlewares.JwtAuthentication(middlewares.AccessToken), controllers.DeleteAccount)
-	r.PATCH("/", middlewares.JwtAuthentication(middlewares.AccessToken), controllers.ChangePassword)
+	r.PATCH("/change-password", middlewares.JwtAuthentication(middlewares.AccessToken), controllers.ChangePassword)
 }
 
 func (u *UsersController) Register(c *gin.Context) {

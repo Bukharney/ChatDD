@@ -18,6 +18,7 @@ type Message struct {
 	PublicKey string `json:"public_key,omitempty"`
 	Salt      string `json:"salt,omitempty"`
 	Content   string `json:"content,omitempty"`
+	Timestamp string `json:"timestamp,omitempty"`
 }
 
 func NewHub() *Hub {

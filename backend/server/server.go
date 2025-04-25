@@ -29,7 +29,7 @@ func (s *Server) Run() error {
 	s.App.Use(cors.New(
 		cors.Config{
 			AllowOrigins:     []string{"http://localhost:5173", "https://chatdd.bukharney.site"},
-			AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+			AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 			AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 			AllowCredentials: true,
 		},

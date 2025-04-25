@@ -51,16 +51,7 @@ const Contacts = ({
     navigate(`/chat?id=${contact.id}`);
   };
 
-  const handleAddContact = (contactName) => {
-    const newContact = {
-      id: Date.now().toString(),
-      name: contactName,
-      lastMessage: "",
-      timestamp: new Date().toISOString(),
-       avatar: 'https://thumbs.dreamstime.com/b/arabic-business-man-traditional-muslim-hat-placeholder-102337208.jpg',
-      isActive: false,
-    };
-
+  const handleAddContact = (newContact) => {
     addContact(newContact);
     setShowModal(false);
   };
@@ -86,45 +77,51 @@ const Contacts = ({
         </div>
 
         <div className="flex-1 overflow-y-auto gap-4">
-          {contacts.map((contact) => (
-            <div
-              key={contact.id}
-              className={`flex items-center p-4 cursor-pointer ${
-                (selectedContact && selectedContact.id === contact.id) ||
-                idFromUrl === contact.id
-                  ? "bg-dark-gray"
-                  : "hover:bg-dark-gray hover:bg-opacity-50"
-              }`}
-              onClick={() => handleContactClick(contact)}
-            >
-              <div className="relative">
-                <div className="w-10 h-10 rounded-full bg-dark-gray flex items-center justify-center">
-                  {contact.avatar ? (
-                    <img
-                      src={contact.avatar}
-                      alt={contact.username}
-                      className="w-full h-full rounded-full"
-                    />
-                  ) : (
-                    <span>{getInitials(contact.username)}</span>
-                  )}
+          {!contacts && (
+            <div className="flex items-center justify-center h-full text-gray">
+              No contacts found
+            </div>
+          )}
+          {contacts &&
+            contacts.map((contact) => (
+              <div
+                key={contact.id}
+                className={`flex items-center p-4 cursor-pointer ${
+                  (selectedContact && selectedContact.id === contact.id) ||
+                  idFromUrl === contact.id
+                    ? "bg-dark-gray"
+                    : "hover:bg-dark-gray hover:bg-opacity-50"
+                }`}
+                onClick={() => handleContactClick(contact)}
+              >
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-full bg-gray flex items-center justify-center">
+                    {contact.avatar ? (
+                      <img
+                        src={contact.avatar}
+                        alt={contact.username}
+                        className="w-full h-full rounded-full"
+                      />
+                    ) : (
+                      <span>{getInitials(contact.username)}</span>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="ml-3 flex-1">
-                <div className="flex justify-between">
-                  <p className="font-medium text-white test-xs lg:text-sm">
-                    {contact.username}
-                  </p>
-                  {/* <p className="text-2xs lg:text-xs text-gray">
+                <div className="ml-3 flex-1">
+                  <div className="flex justify-between">
+                    <p className="font-medium text-white test-xs lg:text-sm">
+                      {contact.username}
+                    </p>
+                    {/* <p className="text-2xs lg:text-xs text-gray">
                     {formatTime(contact.timestamp)}
                   </p> */}
-                </div>
-                {/* <p className="text-2xs lg:text-xs text-gray truncate">
+                  </div>
+                  {/* <p className="text-2xs lg:text-xs text-gray truncate">
                   {contact.lastMessage}
                 </p> */}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </div>
 

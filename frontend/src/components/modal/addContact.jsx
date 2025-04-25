@@ -1,26 +1,30 @@
-import { useState } from 'react';
-import Search from '../../assets/Search';
+import { useState } from "react";
+import Search from "../../assets/Search";
+import { addFriend, findUserByEmail } from "../../api/api";
 
 const AddContact = ({ onClose, onConfirm }) => {
+  const [userProfile, setUserProfile] = useState(null);
   const [isProfileSelected, setIsProfileSelected] = useState(false);
-  const [searchValue, setSearchValue] = useState('');
+  const [searchValue, setSearchValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSearch = (e) => {
-    setSearchValue(e.target.value);
-    
-    if (e.target.value.length > 0) {
+  const handleSearch = async () => {
+    setIsLoading(true);
+    try {
+      const response = await findUserByEmail(searchValue);
+      setUserProfile(response);
       setIsProfileSelected(true);
-    } else {
-      setIsProfileSelected(false);
+    } catch (error) {
+      console.error("Adding contact failed:", error);
     }
+    setIsLoading(false);
   };
 
   const handleConfirm = async () => {
     setIsLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      onConfirm(searchValue);
+      await addFriend(userProfile.id);
+      onConfirm(userProfile);
     } catch (error) {
       console.error("Adding contact failed:", error);
     } finally {
@@ -33,34 +37,45 @@ const AddContact = ({ onClose, onConfirm }) => {
     <div className="fixed inset-0 bg-[#000000] bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-custom-bg-gray border border-border-gray rounded-xl p-6 max-w-sm w-full mx-8 px-14 py-10">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-white text-xl lg:text-base font-bold">Add Contact</h2>
+          <h2 className="text-white text-xl lg:text-base font-bold">
+            Add Contact
+          </h2>
         </div>
-        
+
         <div className="relative mb-6">
           <input
             type="text"
             placeholder="Search"
             value={searchValue}
-            onChange={handleSearch}
+            onChange={(e) => setSearchValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleSearch();
+              }
+            }}
             className="w-full py-3 px-4 bg-gray-800 text-black rounded-lg focus:outline-none border border-border-gray text-sm lg:text-base"
           />
           <div className="absolute right-3 top-3.5 text-gray-400">
             <Search size={20} />
           </div>
         </div>
-        
+
         {isProfileSelected && (
           <div className="flex flex-col items-center mb-6">
             <div className="w-20 h-20 rounded-full bg-gray-700 border-2 border-yellow flex items-center justify-center mb-2">
-              <span className="text-white text-xl">{searchValue.charAt(0).toUpperCase()}</span>
+              <span className="text-white text-xl">
+                {userProfile.username.charAt(0).toUpperCase()}
+              </span>
             </div>
-            <span className="text-white text-sm lg:text-base">{searchValue}</span>
+            <span className="text-white text-sm lg:text-base">
+              {userProfile.username}
+            </span>
           </div>
         )}
-        
+
         <div className="flex flex-col gap-3">
           {isProfileSelected && (
-            <button 
+            <button
               onClick={handleConfirm}
               disabled={isLoading}
               className={`bg-gradient-to-r from-blue to-blue-darkest text-white font-bold rounded-lg p-3 w-full text-sm lg:text-base flex justify-center items-center ${
@@ -96,8 +111,8 @@ const AddContact = ({ onClose, onConfirm }) => {
               )}
             </button>
           )}
-          
-          <button 
+
+          <button
             onClick={onClose}
             className="bg-gradient-to-r from-blue-light to-blue text-black font-bold rounded-lg p-3 w-full text-sm lg:text-base"
           >
