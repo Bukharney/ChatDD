@@ -12,10 +12,10 @@ const SignOutModal = ({ isOpen, onClose }) => {
     setIsLoading(true);
     try {
       await logoutUser();
-      navigate('/login');
+      navigate("/login");
     } catch (error) {
       console.error("Logout failed:", error);
-      navigate('/login');
+      navigate("/login");
     } finally {
       setIsLoading(false);
       onClose();
@@ -26,7 +26,9 @@ const SignOutModal = ({ isOpen, onClose }) => {
     <div className="fixed inset-0 bg-[#000000] bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-custom-bg-gray border border-border-gray rounded-xl p-6 max-w-sm w-full mx-8 px-14 py-10">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-white text-xl lg:text-base font-bold">Sign Out</h2>
+          <h2 className="text-white text-xl lg:text-base font-bold">
+            Sign Out
+          </h2>
         </div>
         <div className="text-white text-sm lg:text-base mb-4">
           Are you sure to sign out?

@@ -3,6 +3,7 @@ package usecases
 import (
 	"context"
 	"errors"
+	"log"
 
 	"github.com/bukharney/ChatDD/modules/entities"
 	"github.com/bukharney/ChatDD/utils/argon"
@@ -49,7 +50,9 @@ func (a *UsersUsecases) ChangePassword(ctx context.Context, req *entities.UsersC
 		return nil, errors.New("error, user not found")
 	}
 
-	if ok, err := a.Argon.ComparePasswordAndHash(user.Password, req.OldPassword); err != nil {
+	log.Println(user.Password, req.OldPassword)
+
+	if ok, err := a.Argon.ComparePasswordAndHash(req.OldPassword, user.Password); err != nil {
 		return nil, errors.New("error, failed to compare password and hash")
 	} else if !ok {
 		return nil, errors.New("error, password is invalid")

@@ -33,15 +33,13 @@ func (r *UserRepo) Register(ctx context.Context, req *entities.UsersRegisterReq)
 }
 
 func (r *UserRepo) ChangePassword(ctx context.Context, req *entities.UsersChangePasswordReq) (*entities.UsersChangedRes, error) {
-	err := r.Db.QueryRow(
+	_, err := r.Db.Exec(
 		ctx,
 		"UPDATE users SET password = $1 WHERE email = $2",
 		req.NewPassword, req.Username,
-	).Scan()
+	)
 	if err != nil {
-		return &entities.UsersChangedRes{
-			Success: false,
-		}, utils.HandlePostgreSQLError(err)
+		return nil, utils.HandlePostgreSQLError(err)
 	}
 
 	return &entities.UsersChangedRes{

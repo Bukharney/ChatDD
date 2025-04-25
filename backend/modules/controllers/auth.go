@@ -161,6 +161,12 @@ func (a *AuthController) Me(c *gin.Context) {
 		})
 		return
 	}
-
-	c.JSON(http.StatusOK, tk)
+	res, err := a.AuthUsecase.Me(c.Request.Context(), *tk)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, res)
 }

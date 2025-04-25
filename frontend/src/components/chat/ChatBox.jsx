@@ -367,12 +367,12 @@ const ChatBox = ({ contact, currentUser }) => {
               <p className="text-gray text-2xs lg:text-xs">Online</p>
             </div>
           </div>
-          <button
+          {/* <button
             onClick={() => setIsSearchOpen(true)}
             className="rounded-lg p-1 flex items-center justify-center border-[1px] border-dark-gray"
           >
             <Search className="cursor-pointer w-6 h-6" />
-          </button>
+          </button> */}
         </div>
       </div>
       <div className="p-4 lg:p-6 text-xs lg:text-sm">
@@ -433,8 +433,8 @@ const ChatBox = ({ contact, currentUser }) => {
               }
             }}
           />
-          <Folder className="cursor-pointer w-8 h-8" />
-          <Camera className="cursor-pointer w-8 h-8" />
+          {/* <Folder className="cursor-pointer w-8 h-8" />
+          <Camera className="cursor-pointer w-8 h-8" /> */}
           <button
             onClick={sendMessage}
             className="bg-gradient-to-r from-blue to-blue-light rounded-lg p-1 flex items-center justify-center"

@@ -2,11 +2,11 @@ import React, { useState } from "react";
 
 const ChangePasswordModal = ({ isOpen, onClose, onSubmit, loading }) => {
   const [passwordForm, setPasswordForm] = useState({
-    current_password: "",
+    old_password: "",
     new_password: "",
     confirm_password: "",
   });
-  
+
   const [error, setError] = useState(null);
 
   const handlePasswordFormChange = (e) => {
@@ -19,20 +19,20 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, loading }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     // Validate passwords match
     if (passwordForm.new_password !== passwordForm.confirm_password) {
       setError("New passwords do not match");
       return;
     }
-    
+
     setError(null);
     onSubmit(passwordForm);
   };
 
   const handleClose = () => {
     setPasswordForm({
-      current_password: "",
+      old_password: "",
       new_password: "",
       confirm_password: "",
     });
@@ -46,13 +46,13 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, loading }) => {
     <div className="fixed inset-0 bg-[#000000] bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-custom-bg-gray border border-border-gray rounded-xl p-6 max-w-md w-full mx-8">
         <h2 className="text-xl font-bold mb-6">Change Password</h2>
-        
+
         {error && (
           <div className="bg-red-500 bg-opacity-20 text-red-500 p-4 rounded-lg mb-6">
             {error}
           </div>
         )}
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray mb-1">
@@ -60,13 +60,13 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, loading }) => {
             </label>
             <input
               type="password"
-              name="current_password"
-              value={passwordForm.current_password}
+              name="old_password"
+              value={passwordForm.old_password}
               onChange={handlePasswordFormChange}
-              className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-blue-light focus:border-transparent"
+              className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 text-black focus:outline-none focus:ring-2 focus:ring-blue-light focus:border-transparent"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray mb-1">
               New Password
@@ -76,10 +76,10 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, loading }) => {
               name="new_password"
               value={passwordForm.new_password}
               onChange={handlePasswordFormChange}
-              className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-blue-light focus:border-transparent"
+              className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 text-black focus:outline-none focus:ring-2 focus:ring-blue-light focus:border-transparent"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray mb-1">
               Confirm New Password
@@ -89,10 +89,10 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, loading }) => {
               name="confirm_password"
               value={passwordForm.confirm_password}
               onChange={handlePasswordFormChange}
-              className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-blue-light focus:border-transparent"
+              className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 text-black focus:outline-none focus:ring-2 focus:ring-blue-light focus:border-transparent"
             />
           </div>
-          
+
           <div className="pt-4 flex space-x-4">
             <button
               type="submit"

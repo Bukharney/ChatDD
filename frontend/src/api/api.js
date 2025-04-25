@@ -50,37 +50,14 @@ const getUser = async () => {
 
 const logoutUser = async () => {
   try {
-    const token = localStorage.getItem("token") || "";
-    if (!token) {
-      console.log("No token found, clearing local storage only");
-      localStorage.removeItem("token");
-      localStorage.removeItem("refreshToken");
-      return { success: true, message: "Logged out successfully" };
-    }
-
-    const response = await axios.post(
-      `${baseUrl}/v1/auth/logout`,
-      {},
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    localStorage.removeItem("token");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("user");
-
-    return response.data;
+    await axios.get(`${baseUrl}/v1/auth/logout`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      withCredentials: true,
+    });
   } catch (error) {
     console.error("Error logging out:", error);
-    localStorage.removeItem("token");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("user");
-
-    return { success: true, message: "Logged out locally" };
   }
 };
 
@@ -98,6 +75,72 @@ const getFriends = async () => {
       await refreshToken();
     }
     console.error("Error fetching contacts:", error);
+  }
+};
+
+const changePassword = async (newPassword = "", oldPassword = "") => {
+  try {
+    await axios.patch(
+      `${baseUrl}/v1/users/change-password`,
+      {
+        new_password: newPassword,
+        old_password: oldPassword,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        withCredentials: true,
+      }
+    );
+  } catch (error) {
+    if (error.response.status === 403) {
+      await refreshToken();
+    }
+    console.error("Error fetching contacts:", error);
+  }
+};
+
+const findUserByEmail = async (email = "") => {
+  try {
+    const response = await axios.get(
+      `${baseUrl}/v1/users/find?email=${email}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        withCredentials: true,
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (error.response.status === 403) {
+      await refreshToken();
+    }
+    console.error("Error fetching contacts:", error);
+  }
+};
+
+const addFriend = async (friendId = "") => {
+  try {
+    const response = await axios.post(
+      `${baseUrl}/v1/users/add-friend`,
+      {
+        user_b_id: friendId,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        withCredentials: true,
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (error.response.status === 403) {
+      await refreshToken();
+    }
+    console.error("Error adding friend:", error);
   }
 };
 
@@ -120,4 +163,14 @@ const refreshToken = async () => {
   }
 };
 
-export { createUser, loginUser, logoutUser, getFriends, getUser, refreshToken };
+export {
+  createUser,
+  loginUser,
+  logoutUser,
+  addFriend,
+  getFriends,
+  changePassword,
+  getUser,
+  findUserByEmail,
+  refreshToken,
+};
