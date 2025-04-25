@@ -21,7 +21,7 @@ const Search = ({ className }) => (
     <path
       opacity="0.4"
       d="M13.5137 13.8639L16.1567 16.5"
-     stroke="currentColor"
+      stroke="currentColor"
       strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"

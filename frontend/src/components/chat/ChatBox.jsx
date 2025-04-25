@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import DOMPurify from "dompurify";
 import { useLocation } from "react-router-dom";
 import chatData from "../../data/chatData.json";
 import Folder from "../../assets/Folder";
@@ -287,14 +288,17 @@ const ChatBox = ({ contact, currentUser }) => {
 
   const sendMessage = async () => {
     if (inputMessage.trim() === "") return;
-
+  
+    const sanitizedMessage = DOMPurify.sanitize(inputMessage);
+  
     const newMessage = {
       from: currentUser.user_id,
       to: contact.id,
-      type: "message",
-      content: inputMessage,
+      type: "text",
+      content: sanitizedMessage,
       timestamp: new Date().toISOString(),
     };
+ 
     setMessages((prev) => [...prev, newMessage]);
 
     const Message = {
